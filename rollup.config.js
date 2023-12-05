@@ -30,7 +30,12 @@ const rollupTs = (file) => {
         inlineDynamicImports: true
       }
     ],
-    external: ['@rolster/i18n'],
+    external: [
+      '@rolster/helpers-forms',
+      '@rolster/validators',
+      'react',
+      'uuid'
+    ],
     plugins
   };
 };
