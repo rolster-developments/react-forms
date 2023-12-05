@@ -1,6 +1,6 @@
 {
   "name": "@rolster/react-forms",
-  "version": "18.0.0",
+  "version": "18.0.2",
   "description": "It implements a set of classes that allow managing the control of states of the input components in React",
   "module": "dist/esm/index.js",
   "main": "dist/cjs/index.js",
@@ -28,8 +28,11 @@
   "dependencies": {
     "@rolster/helpers-forms": "^1.9.0",
     "@rolster/validators": "^1.0.1",
-    "react": "^18.2.0",
+    "rxjs": "^7.8.0",
     "uuid": "^9.0.1"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.4",
@@ -43,6 +46,7 @@
     "prettier": "^3.0.3",
     "rimraf": "^3.0.2",
     "rollup": "^2.32.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
     "ts-jest": "^29.1.0",
     "tslib": "^2.4.0",
     "typescript": "^4.9.3"

@@ -1,10 +1,12 @@
+import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 
 const plugins = [
   commonjs(),
   resolve(),
+  peerDepsExternal(),
   typescript({
     tsconfig: './tsconfig.app.json',
     declaration: true,
@@ -30,12 +32,7 @@ const rollupTs = (file) => {
         inlineDynamicImports: true
       }
     ],
-    external: [
-      '@rolster/helpers-forms',
-      '@rolster/validators',
-      'react',
-      'uuid'
-    ],
+    external: ['@rolster/helpers-forms', '@rolster/validators', 'rxjs', 'uuid'],
     plugins
   };
 };
