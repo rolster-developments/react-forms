@@ -8,12 +8,16 @@ import { useEffect, useRef, useState } from 'react';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
 
+interface ReactControlProps<T = any> extends FormControlProps<T> {
+  touched?: boolean;
+}
+
 export function useReactControl<E extends HTMLElement, T = any>(
-  props: FormControlProps<T> = {}
+  props: ReactControlProps<T> = {}
 ): ReactFormControl<E, T> {
   const [state, setCurrentState] = useState<FormState<T>>(props.state);
   const [value, setValue] = useState<T>(props.state as T);
-  const [touched, setTouched] = useState<boolean>(false);
+  const [touched, setTouched] = useState<boolean>(props.touched || false);
   const [dirty, setDirty] = useState<boolean>(false);
   const [focused, setFocused] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -108,13 +112,13 @@ export function useReactControl<E extends HTMLElement, T = any>(
 }
 
 export function useFormControl<T = any>(
-  props: FormControlProps<T> = {}
+  props: ReactControlProps<T> = {}
 ): ReactHtmlControl<T> {
   return useReactControl<HTMLElement, T>(props);
 }
 
 export function useInputControl<T = any>(
-  props: FormControlProps<T> = {}
+  props: ReactControlProps<T> = {}
 ): ReactInputControl<T> {
   return useReactControl<HTMLInputElement, T>(props);
 }

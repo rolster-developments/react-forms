@@ -28,7 +28,8 @@ import {
   ReactFormArray
 } from './types';
 
-interface ReactFormArrayControlProps<T = any> extends FormArrayControlProps<T> {
+interface AbtractFormArrayControlProps<T = any>
+  extends FormArrayControlProps<T> {
   focused?: boolean;
   dirty?: boolean;
   disabled?: boolean;
@@ -72,7 +73,7 @@ class RolsterArrayControl<
   parentGroup?: AbstractRolsterArrayGroup<C> | undefined;
   elementRef?: LegacyRef<E> | undefined;
 
-  constructor(props: ReactFormArrayControlProps<T>) {
+  constructor(props: AbtractFormArrayControlProps<T>) {
     const { uuid, focused, dirty, disabled, state, touched, validators } =
       props;
 
@@ -138,7 +139,7 @@ class RolsterArrayControl<
 
   public reset(): void {}
 
-  private update(changes: Partial<ReactFormArrayControlProps<T>>): void {
+  private update(changes: Partial<AbtractFormArrayControlProps<T>>): void {
     this.parentGroup?.parentArray?.update(this, changes);
   }
 }
@@ -215,17 +216,21 @@ interface RolsterFormArray<T extends ReactArrayControls>
   extends ReactFormArray<T> {
   update(
     control: AbstractRolsterArrayControl<any, T>,
-    changes: Partial<ReactFormArrayControlProps<any>>
+    changes: Partial<AbtractFormArrayControlProps<any>>
   ): void;
 }
 
-type RolsterControlProps<T = any> = Omit<ReactFormArrayControlProps<T>, 'uuid'>;
+interface RolsterControlProps<T = any> extends FormArrayControlProps<T> {
+  touched?: boolean;
+}
+
+type ReactControlProps<T = any> = Omit<RolsterControlProps<T>, 'uuid'>;
 
 export function useFormArrayControl<
   T = any,
   C extends ReactArrayControls = any,
   E extends HTMLElement = HTMLElement
->(props: RolsterControlProps<T>): AbstractRolsterArrayControl<T, C, E> {
+>(props: ReactControlProps<T>): AbstractRolsterArrayControl<T, C, E> {
   return new RolsterArrayControl({ ...props, uuid: uuid() });
 }
 
@@ -233,7 +238,7 @@ export function useInputArrayControl<
   T = any,
   C extends ReactArrayControls = any
 >(
-  props: RolsterControlProps<T>
+  props: ReactControlProps<T>
 ): AbstractRolsterArrayControl<T, C, HTMLInputElement> {
   return new RolsterArrayControl({ ...props, uuid: uuid() });
 }
@@ -256,7 +261,7 @@ function cloneFormArrayGroup<
 >(
   group: AbstractRolsterArrayGroup<C>,
   control: AbstractRolsterArrayControl<T>,
-  changes: Partial<ReactFormArrayControlProps<T>>
+  changes: Partial<AbtractFormArrayControlProps<T>>
 ): AbstractRolsterArrayGroup<C> {
   const newControl = new RolsterArrayControl({ ...control, ...changes });
 
@@ -317,7 +322,7 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
 
   function update(
     control: AbstractRolsterArrayControl<T>,
-    changes: Partial<ReactFormArrayControlProps<T>>
+    changes: Partial<AbtractFormArrayControlProps<T>>
   ): void {
     if (control.parentGroup) {
       const group = cloneFormArrayGroup(control.parentGroup, control, changes);
