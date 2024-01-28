@@ -51,6 +51,7 @@ export function useFormGroup<T extends ReactControls>(
     untouched: !touched,
     untoucheds: !toucheds,
     valid,
-    value
+    value,
+    wrong: touched && !valid
   };
 }

@@ -64,6 +64,7 @@ class RolsterArrayControl<
   public readonly pristine: boolean;
   public readonly valid: boolean;
   public readonly invalid: boolean;
+  public readonly wrong: boolean;
   public readonly value: T;
   public readonly errors: ValidatorError<T>[];
   public readonly error?: ValidatorError<T> | undefined;
@@ -94,6 +95,7 @@ class RolsterArrayControl<
     this.error = this.errors[0];
     this.valid = this.errors.length === 0;
     this.invalid = !this.valid;
+    this.wrong = this.touched && this.invalid;
     this.value = state as T;
   }
 
@@ -171,6 +173,7 @@ class RolsterArrayGroup<
   public readonly untouched: boolean;
   public readonly untoucheds: boolean;
   public readonly valid: boolean;
+  public readonly wrong: boolean;
   public readonly error?: ValidatorError<any> | undefined;
   public readonly validators?: ValidatorGroupFn<T>[] | undefined;
 
@@ -206,6 +209,7 @@ class RolsterArrayGroup<
     this.pristine = !this.dirty;
     this.dirties = controlsAllChecked(controls, 'dirty');
     this.pristines = !this.dirties;
+    this.wrong = this.touched && this.invalid;
 
     this.state = controlsToState(controls);
     this.value = controlsToValue(controls);
@@ -301,7 +305,6 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
 
   const error = errors[0];
   const valid = errors.length === 0 && groupAllChecked(groups, 'valid');
-  const invalid = !valid;
 
   const touched = groupPartialChecked(groups, 'touched');
   const toucheds = groupAllChecked(groups, 'touched');
@@ -350,7 +353,7 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     error,
     errors,
     groups,
-    invalid,
+    invalid: !valid,
     merge,
     pristine: !dirty,
     pristines: !dirties,
@@ -366,7 +369,8 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     untoucheds: !toucheds,
     update,
     valid,
-    value: state as ArrayValueGroup<T>[]
+    value: state as ArrayValueGroup<T>[],
+    wrong: touched && !valid
   };
 
   groups.forEach((group) => (group.parentArray = formArray));
