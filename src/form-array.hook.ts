@@ -160,7 +160,7 @@ class RolsterArrayControl<
   }
 
   private update(changes: Partial<AbtractFormArrayControlProps<T>>): void {
-    this.group?.parent?.updateControl(this, {
+    this.group?.parent?.refreshControl(this, {
       ...changes,
       initialState: this.initialState
     });
@@ -168,21 +168,21 @@ class RolsterArrayControl<
 }
 
 interface AbstractRolsterArrayGroup<
-  T extends RolsterArrayControls = RolsterArrayControls,
+  C extends RolsterArrayControls = RolsterArrayControls,
   R = any
-> extends ReactArrayGroup<T, R> {
-  parent?: RolsterFormArray<T>;
-  validators?: ValidatorGroupFn<T>[];
+> extends ReactArrayGroup<C, R> {
+  parent?: RolsterFormArray<C>;
+  validators?: ValidatorGroupFn<C>[];
 }
 
 class RolsterArrayGroup<
-  T extends RolsterArrayControls = RolsterArrayControls,
+  C extends RolsterArrayControls = RolsterArrayControls,
   R = any
-> implements AbstractRolsterArrayGroup<T, R>
+> implements AbstractRolsterArrayGroup<C, R>
 {
   public readonly uuid: string;
   public readonly resource?: R;
-  public readonly controls: T;
+  public readonly controls: C;
   public readonly dirty: boolean;
   public readonly dirties: boolean;
   public readonly errors: ValidatorError<any>[];
@@ -196,14 +196,14 @@ class RolsterArrayGroup<
   public readonly valid: boolean;
   public readonly wrong: boolean;
   public readonly error?: ValidatorError<any>;
-  public readonly validators?: ValidatorGroupFn<T>[];
+  public readonly validators?: ValidatorGroupFn<C>[];
 
-  public readonly state: ArrayStateGroup<T>;
-  public readonly value: ArrayValueGroup<T>;
+  public readonly state: ArrayStateGroup<C>;
+  public readonly value: ArrayValueGroup<C>;
 
-  parent?: RolsterFormArray<T>;
+  parent?: RolsterFormArray<C>;
 
-  constructor(props: FormArrayGroupProps<T>) {
+  constructor(props: FormArrayGroupProps<C>) {
     const { controls, resource, uuid, validators } = props;
 
     Object.values(controls).forEach((control) => (control.group = this));
@@ -221,34 +221,36 @@ class RolsterArrayGroup<
     this.invalid = !this.valid;
 
     this.touched = controlsPartialChecked(controls, 'touched');
-    this.untouched = !this.touched;
     this.toucheds = controlsAllChecked(controls, 'touched');
-    this.untoucheds = !this.toucheds;
     this.dirty = controlsPartialChecked(controls, 'dirty');
-    this.pristine = !this.dirty;
     this.dirties = controlsAllChecked(controls, 'dirty');
+
+    this.untouched = !this.touched;
+    this.untoucheds = !this.toucheds;
+    this.pristine = !this.dirty;
     this.pristines = !this.dirties;
+
     this.wrong = this.touched && this.invalid;
 
     this.state = controlsToState(controls);
     this.value = controlsToValue(controls);
   }
 
-  public setValidators(validators: ValidatorGroupFn<T>[]): void {
-    this.parent?.updateGroup(this, { validators });
+  public setValidators(validators: ValidatorGroupFn<C>[]): void {
+    this.parent?.refreshGroup(this, { validators });
   }
 }
 
-interface RolsterFormArray<T extends ReactArrayControls>
-  extends ReactFormArray<T> {
-  updateControl(
-    control: AbstractRolsterArrayControl<any, T>,
+interface RolsterFormArray<C extends ReactArrayControls>
+  extends ReactFormArray<C> {
+  refreshControl(
+    control: AbstractRolsterArrayControl<any, C>,
     changes: Partial<AbtractFormArrayControlProps<any>>
   ): void;
 
-  updateGroup(
-    group: AbstractRolsterArrayGroup<T>,
-    changes: Partial<FormArrayGroupProps<T>>
+  refreshGroup(
+    group: AbstractRolsterArrayGroup<C>,
+    changes: Partial<FormArrayGroupProps<C>>
   ): void;
 }
 
@@ -257,6 +259,26 @@ interface RolsterControlProps<T = any> extends FormArrayControlProps<T> {
 }
 
 type ReactControlProps<T = any> = Omit<RolsterControlProps<T>, 'uuid'>;
+
+export function cloneFormArrayControl<
+  T = any,
+  C extends ReactArrayControls = ReactArrayControls,
+  E extends HTMLElement = HTMLElement
+>(
+  control: AbstractRolsterArrayControl<T, C, E>,
+  changes: Partial<AbtractFormArrayControlProps<T>>
+): ReactArrayControl<E, T> {
+  return new RolsterArrayControl({ ...control, ...changes });
+}
+
+export function cloneFormArrayGroup<
+  C extends ReactArrayControls = ReactArrayControls
+>(
+  group: AbstractRolsterArrayGroup<C>,
+  changes: Partial<FormArrayGroupProps<C>>
+): ReactArrayGroup<C> {
+  return new RolsterArrayGroup({ ...group, ...changes });
+}
 
 export function useFormArrayControl<
   T = any,
@@ -284,18 +306,18 @@ export function useInputArrayControl<
 }
 
 type RolsterGroupProps<
-  T extends RolsterArrayControls = RolsterArrayControls,
+  C extends RolsterArrayControls = RolsterArrayControls,
   R = any
-> = Omit<FormArrayGroupProps<T, R>, 'uuid'>;
+> = Omit<FormArrayGroupProps<C, R>, 'uuid'>;
 
 export function useFormArrayGroup<
-  T extends RolsterArrayControls = RolsterArrayControls,
+  C extends RolsterArrayControls = RolsterArrayControls,
   R = any
->(props: RolsterGroupProps<T>): AbstractRolsterArrayGroup<T, R> {
+>(props: RolsterGroupProps<C>): AbstractRolsterArrayGroup<C, R> {
   return new RolsterArrayGroup({ ...props, uuid: uuid() });
 }
 
-function cloneFormArrayGroup<
+function cloneFormControlForArrayGroup<
   T = any,
   C extends ReactArrayControls = ReactArrayControls
 >(
@@ -303,7 +325,7 @@ function cloneFormArrayGroup<
   control: AbstractRolsterArrayControl<T>,
   changes: Partial<AbtractFormArrayControlProps<T>>
 ): AbstractRolsterArrayGroup<C> {
-  const newControl = new RolsterArrayControl({ ...control, ...changes });
+  const newControl = cloneFormArrayControl(control, changes);
 
   const { uuid } = newControl;
 
@@ -320,17 +342,17 @@ function cloneFormArrayGroup<
 }
 
 type RolsterArrayProps<
-  T extends ReactArrayControls = ReactArrayControls,
+  C extends ReactArrayControls = ReactArrayControls,
   R = any
-> = FormArrayProps<T, R, AbstractRolsterArrayGroup<T, R>>;
+> = FormArrayProps<C, R, AbstractRolsterArrayGroup<C, R>>;
 
-export function useFormArray<T extends ReactArrayControls, R = any>(
-  props: RolsterArrayProps<T, R>
-): ReactFormArray<T, R> {
+export function useFormArray<C extends ReactArrayControls, R = any>(
+  props: RolsterArrayProps<C, R>
+): ReactFormArray<C, R> {
   const [currentState] = useState(props.groups);
-  const [state, setState] = useState<ArrayStateGroup<T>[]>([]);
+  const [state, setState] = useState<ArrayStateGroup<C>[]>([]);
   const [validators, setValidators] = useState(props.validators);
-  const [controls, setControls] = useState<T[]>([]);
+  const [controls, setControls] = useState<C[]>([]);
   const [groups, setGroups] = useState(props.groups || []);
 
   useEffect(() => {
@@ -348,37 +370,28 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
   const dirties = groupAllChecked(groups, 'dirty');
   const dirty = groupPartialChecked(groups, 'dirty');
 
-  function push(group: AbstractRolsterArrayGroup<T, R>): void {
+  function push(group: AbstractRolsterArrayGroup<C, R>): void {
     setGroups([...groups, group]);
   }
 
-  function merge(newGroups: AbstractRolsterArrayGroup<T, R>[]): void {
+  function merge(newGroups: AbstractRolsterArrayGroup<C, R>[]): void {
     setGroups([...groups, ...newGroups]);
   }
 
-  function set(groups: AbstractRolsterArrayGroup<T, R>[]): void {
+  function set(groups: AbstractRolsterArrayGroup<C, R>[]): void {
     setGroups(groups);
   }
 
-  function updateGroup(
-    group: AbstractRolsterArrayGroup<T>,
-    changes: Partial<FormArrayGroupProps<T>>
-  ): void {
-    const newGroup = new RolsterArrayGroup({ ...group, ...changes });
-
-    setGroups(
-      groups.map((currentGroup) =>
-        currentGroup.uuid === group.uuid ? newGroup : currentGroup
-      )
-    );
-  }
-
-  function updateControl(
-    control: AbstractRolsterArrayControl<T>,
-    changes: Partial<AbtractFormArrayControlProps<T>>
+  function refreshControl(
+    control: AbstractRolsterArrayControl<C>,
+    changes: Partial<AbtractFormArrayControlProps<C>>
   ): void {
     if (control.group) {
-      const group = cloneFormArrayGroup(control.group, control, changes);
+      const group = cloneFormControlForArrayGroup(
+        control.group,
+        control,
+        changes
+      );
 
       setGroups(
         groups.map((currentGroup) =>
@@ -388,7 +401,22 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     }
   }
 
-  function remove(group: ReactArrayGroup<T>): void {
+  function refreshGroup(
+    group: AbstractRolsterArrayGroup<C>,
+    changes: Partial<FormArrayGroupProps<C>>
+  ): void {
+    const newGroup = cloneFormArrayGroup(group, changes);
+
+    const { uuid } = newGroup;
+
+    setGroups(
+      groups.map((currentGroup) =>
+        currentGroup.uuid === uuid ? newGroup : currentGroup
+      )
+    );
+  }
+
+  function remove(group: ReactArrayGroup<C>): void {
     setGroups(groups.filter(({ uuid }) => group.uuid !== uuid));
   }
 
@@ -396,7 +424,7 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     setGroups(currentState || []);
   }
 
-  const formArray: RolsterFormArray<T> = {
+  const formArray: RolsterFormArray<C> = {
     controls,
     dirty,
     dirties,
@@ -408,6 +436,8 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     pristine: !dirty,
     pristines: !dirties,
     push,
+    refreshControl,
+    refreshGroup,
     remove,
     reset,
     set,
@@ -417,10 +447,8 @@ export function useFormArray<T extends ReactArrayControls, R = any>(
     toucheds,
     untouched: !touched,
     untoucheds: !toucheds,
-    updateControl,
-    updateGroup,
     valid,
-    value: state as ArrayValueGroup<T>[],
+    value: state as ArrayValueGroup<C>[],
     wrong: touched && !valid
   };
 

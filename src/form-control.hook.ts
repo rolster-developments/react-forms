@@ -5,7 +5,7 @@ import {
 } from '@rolster/helpers-forms';
 import { controlIsValid } from '@rolster/helpers-forms/helpers';
 import { useEffect, useRef, useState } from 'react';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
 
 interface ReactControlProps<T = any> extends FormControlProps<T> {
@@ -78,8 +78,10 @@ export function useReactControl<E extends HTMLElement, T = any>(
     setCurrentState(initialValue);
   }
 
-  function subscribe(subscriber: SubscriberControl<T>): Subscription {
-    return subscribers.subscribe(subscriber);
+  function subscribe(subscriber: SubscriberControl<T>): Unsubscription {
+    const subscription = subscribers.subscribe(subscriber);
+
+    return () => subscription.unsubscribe();
   }
 
   return {
