@@ -30,9 +30,10 @@ import {
 
 interface AbtractFormArrayControlProps<T = any>
   extends FormArrayControlProps<T> {
-  focused?: boolean;
   dirty?: boolean;
   disabled?: boolean;
+  initialState?: FormState<T>;
+  focused?: boolean;
   touched?: boolean;
 }
 
@@ -71,12 +72,22 @@ class RolsterArrayControl<
   public readonly state?: FormState<T>;
   public readonly validators?: ValidatorFn<T>[] | undefined;
 
+  private initialState?: FormState<T>;
+
   parentGroup?: AbstractRolsterArrayGroup<C> | undefined;
   elementRef?: LegacyRef<E> | undefined;
 
   constructor(props: AbtractFormArrayControlProps<T>) {
-    const { uuid, focused, dirty, disabled, state, touched, validators } =
-      props;
+    const {
+      uuid,
+      focused,
+      dirty,
+      disabled,
+      initialState,
+      state,
+      touched,
+      validators
+    } = props;
 
     this.uuid = uuid;
     this.focused = focused || false;
@@ -89,6 +100,7 @@ class RolsterArrayControl<
     this.enabled = !this.disabled;
     this.state = state;
     this.validators = validators;
+    this.initialState = initialState;
 
     this.errors = validators ? controlIsValid({ state, validators }) : [];
 
@@ -139,10 +151,19 @@ class RolsterArrayControl<
     this.update({ state });
   }
 
-  public reset(): void {}
+  public setValidators(validators?: ValidatorFn<T>[]): void {
+    this.update({ validators });
+  }
+
+  public reset(): void {
+    this.update({ state: this.initialState });
+  }
 
   private update(changes: Partial<AbtractFormArrayControlProps<T>>): void {
-    this.parentGroup?.parentArray?.update(this, changes);
+    this.parentGroup?.parentArray?.update(this, {
+      ...changes,
+      initialState: this.initialState
+    });
   }
 }
 
@@ -235,7 +256,11 @@ export function useFormArrayControl<
   C extends ReactArrayControls = any,
   E extends HTMLElement = HTMLElement
 >(props: ReactControlProps<T>): AbstractRolsterArrayControl<T, C, E> {
-  return new RolsterArrayControl({ ...props, uuid: uuid() });
+  return new RolsterArrayControl({
+    ...props,
+    uuid: uuid(),
+    initialState: props.state
+  });
 }
 
 export function useInputArrayControl<
@@ -244,7 +269,11 @@ export function useInputArrayControl<
 >(
   props: ReactControlProps<T>
 ): AbstractRolsterArrayControl<T, C, HTMLInputElement> {
-  return new RolsterArrayControl({ ...props, uuid: uuid() });
+  return new RolsterArrayControl({
+    ...props,
+    uuid: uuid(),
+    initialState: props.state
+  });
 }
 
 type RolsterGroupProps<
