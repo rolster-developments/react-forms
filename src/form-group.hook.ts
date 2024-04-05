@@ -1,4 +1,4 @@
-import { FormGroupProps } from '@rolster/helpers-forms';
+import { FormGroupProps, ValidatorGroupFn } from '@rolster/helpers-forms';
 import {
   controlsAllChecked,
   controlsPartialChecked,
@@ -9,9 +9,40 @@ import {
 import { useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
 
+function instanceOfReactGroupProps<T extends ReactControls>(
+  props: any
+): props is FormGroupProps<T> {
+  return (
+    typeof props === 'object' && ('controls' in props || 'validators' in props)
+  );
+}
+
+function getReactGroupProps<T extends ReactControls>(
+  props: FormGroupProps<T> | T,
+  validators?: ValidatorGroupFn<T>[]
+): FormGroupProps<T> {
+  if (instanceOfReactGroupProps<T>(props)) {
+    return props;
+  }
+
+  const controls = props as T;
+
+  return { controls, validators };
+}
+
+export function useFormGroup<T extends ReactControls>(
+  controls: T,
+  validators?: ValidatorGroupFn<T>[]
+): ReactGroup<T>;
 export function useFormGroup<T extends ReactControls>(
   props: FormGroupProps<T>
+): ReactGroup<T>;
+export function useFormGroup<T extends ReactControls>(
+  reactProps: FormGroupProps<T> | T,
+  validatorsFn?: ValidatorGroupFn<T>[]
 ): ReactGroup<T> {
+  const props = getReactGroupProps(reactProps, validatorsFn);
+
   const [validators, setValidators] = useState(props.validators);
 
   const { controls } = props;

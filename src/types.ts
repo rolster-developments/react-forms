@@ -7,16 +7,16 @@ import {
   AbstractFormGroup,
   AbstractGroupControls
 } from '@rolster/helpers-forms';
-import { LegacyRef } from 'react';
+import { RefObject } from 'react';
 
 export interface ReactFormControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractFormControl<T> {
-  elementRef?: LegacyRef<E>;
+  elementRef?: RefObject<E>;
 }
 
 export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractArrayControl<T> {
-  elementRef?: LegacyRef<E>;
+  elementRef?: RefObject<E>;
 }
 
 export type ReactControl<E extends HTMLElement = HTMLElement, T = any> =

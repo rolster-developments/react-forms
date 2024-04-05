@@ -1,6 +1,16 @@
-export * from './form-array.hook';
-export * from './form-control.hook';
-export * from './form-group.hook';
+export {
+  useFormArray,
+  useFormArrayControl,
+  useFormArrayGroup,
+  useInputArrayControl
+} from './form-array';
+export {
+  useFormControl,
+  useInputControl,
+  useReactControl
+} from './form-control.hook';
+export { useFormGroup } from './form-group.hook';
+export { useNumberRefControl, useTextRefControl } from './form-ref.hook';
 export {
   ReactArrayControl,
   ReactArrayControls,
