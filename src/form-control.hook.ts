@@ -43,11 +43,11 @@ export function useReactControl<
   T = any
 >(): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T = any>(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
+  props: ReactControlProps<T>
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T = any>(
-  props: ReactControlProps<T>
+  state: FormState<T>,
+  validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T = any>(
   reactProps?: ReactControlProps<T> | FormState<T>,
@@ -156,11 +156,11 @@ export function useReactControl<E extends HTMLElement, T = any>(
 
 export function useFormControl<T = any>(): ReactHtmlControl<T>;
 export function useFormControl<T = any>(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
+  props: ReactControlProps<T>
 ): ReactHtmlControl<T>;
 export function useFormControl<T = any>(
-  props: ReactControlProps<T>
+  state: FormState<T>,
+  validators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T>;
 export function useFormControl<T = any>(
   reactProps?: ReactControlProps<T> | FormState<T>,
@@ -173,11 +173,11 @@ export function useFormControl<T = any>(
 
 export function useInputControl<T = any>(): ReactInputControl<T>;
 export function useInputControl<T = any>(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
+  props: ReactControlProps<T>
 ): ReactInputControl<T>;
 export function useInputControl<T = any>(
-  props: ReactControlProps<T>
+  state: FormState<T>,
+  validators?: ValidatorFn<T>[]
 ): ReactInputControl<T>;
 export function useInputControl<T = any>(
   reactProps?: ReactControlProps<T> | FormState<T>,

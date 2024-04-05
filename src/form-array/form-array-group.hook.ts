@@ -114,14 +114,14 @@ function getReactArrayGroupProps<C extends RolsterArrayControls>(
 export function useFormArrayGroup<
   C extends RolsterArrayControls = RolsterArrayControls,
   R = any
+>(props: RolsterGroupProps<C, R>): AbstractRolsterArrayGroup<C, R>;
+export function useFormArrayGroup<
+  C extends RolsterArrayControls = RolsterArrayControls,
+  R = any
 >(
   controls: C,
   validators?: ValidatorGroupFn<C, R>[]
 ): AbstractRolsterArrayGroup<C, R>;
-export function useFormArrayGroup<
-  C extends RolsterArrayControls = RolsterArrayControls,
-  R = any
->(props: RolsterGroupProps<C, R>): AbstractRolsterArrayGroup<C, R>;
 export function useFormArrayGroup<
   C extends RolsterArrayControls = RolsterArrayControls,
   R = any

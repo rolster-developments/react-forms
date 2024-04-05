@@ -31,11 +31,11 @@ function getReactGroupProps<T extends ReactControls>(
 }
 
 export function useFormGroup<T extends ReactControls>(
-  controls: T,
-  validators?: ValidatorGroupFn<T>[]
+  props: FormGroupProps<T>
 ): ReactGroup<T>;
 export function useFormGroup<T extends ReactControls>(
-  props: FormGroupProps<T>
+  controls: T,
+  validators?: ValidatorGroupFn<T>[]
 ): ReactGroup<T>;
 export function useFormGroup<T extends ReactControls>(
   reactProps: FormGroupProps<T> | T,

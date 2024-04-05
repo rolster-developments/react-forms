@@ -104,11 +104,11 @@ export function useFormArray<
   R = any
 >(): ReactFormArray<G, R>;
 export function useFormArray<G extends ReactArrayControls, R = any>(
-  groups: AbstractRolsterArrayGroup<G, R>[],
-  validatorsFn?: ValidatorArrayFn<G, R>[]
+  props: RolsterArrayProps<G>
 ): ReactFormArray<G, R>;
 export function useFormArray<G extends ReactArrayControls, R = any>(
-  props: RolsterArrayProps<G>
+  groups: AbstractRolsterArrayGroup<G, R>[],
+  validatorsFn?: ValidatorArrayFn<G, R>[]
 ): ReactFormArray<G, R>;
 export function useFormArray<G extends ReactArrayControls, R = any>(
   reactProps?: RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[],

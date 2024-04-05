@@ -64,11 +64,11 @@ function useInputRefControl<T = any>(props: ReactRefProps<T>) {
 
 export function useTextRefControl(): ReactInputControl<string>;
 export function useTextRefControl(
-  state?: FormState<string>,
-  validators?: ValidatorFn<string>[]
+  props: TextRefProps
 ): ReactInputControl<string>;
 export function useTextRefControl(
-  props?: TextRefProps
+  state: FormState<string>,
+  validators?: ValidatorFn<string>[]
 ): ReactInputControl<string>;
 export function useTextRefControl(
   reactProps?: TextRefProps | FormState<string>,
@@ -82,11 +82,11 @@ export function useTextRefControl(
 
 export function useNumberRefControl(): ReactInputControl<number>;
 export function useNumberRefControl(
-  state?: FormState<number>,
-  validators?: ValidatorFn<number>[]
+  props: NumberRefProps
 ): ReactInputControl<number>;
 export function useNumberRefControl(
-  props?: NumberRefProps
+  state: FormState<number>,
+  validators?: ValidatorFn<number>[]
 ): ReactInputControl<number>;
 export function useNumberRefControl(
   reactProps?: NumberRefProps | FormState<number>,

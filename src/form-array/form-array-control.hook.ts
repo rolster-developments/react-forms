@@ -145,15 +145,15 @@ export function useFormArrayControl<
   T = any,
   C extends ReactArrayControls = any,
   E extends HTMLElement = HTMLElement
->(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
-): AbstractRolsterArrayControl<T, C, E>;
+>(props: ReactControlProps<T>): AbstractRolsterArrayControl<T, C, E>;
 export function useFormArrayControl<
   T = any,
   C extends ReactArrayControls = any,
   E extends HTMLElement = HTMLElement
->(props: ReactControlProps<T>): AbstractRolsterArrayControl<T, C, E>;
+>(
+  state: FormState<T>,
+  validators?: ValidatorFn<T>[]
+): AbstractRolsterArrayControl<T, C, E>;
 export function useFormArrayControl<
   T = any,
   C extends ReactArrayControls = any,
@@ -179,14 +179,14 @@ export function useInputArrayControl<
   T = any,
   C extends ReactArrayControls = any
 >(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
+  props: ReactControlProps<T>
 ): AbstractRolsterArrayControl<T, C, HTMLInputElement>;
 export function useInputArrayControl<
   T = any,
   C extends ReactArrayControls = any
 >(
-  props: ReactControlProps<T>
+  state: FormState<T>,
+  validators?: ValidatorFn<T>[]
 ): AbstractRolsterArrayControl<T, C, HTMLInputElement>;
 export function useInputArrayControl<
   T = any,
