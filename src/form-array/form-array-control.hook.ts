@@ -3,7 +3,7 @@ import { controlIsValid } from '@rolster/helpers-forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
-import { getReactControlProps } from '../form-control.hook';
+import { createReactControlProps } from '../form-control.hook';
 import { ReactArrayControls } from '../types';
 import {
   AbstractRolsterArrayControl,
@@ -159,10 +159,10 @@ export function useFormArrayControl<
   C extends ReactArrayControls = any,
   E extends HTMLElement = HTMLElement
 >(
-  reactProps?: ReactControlProps<T> | FormState<T>,
-  validators?: ValidatorFn<T>[]
+  controlProps?: ReactControlProps<T> | FormState<T>,
+  controlValidators?: ValidatorFn<T>[]
 ): AbstractRolsterArrayControl<T, C, E> {
-  const props = getReactControlProps(reactProps, validators);
+  const props = createReactControlProps(controlProps, controlValidators);
 
   return new RolsterArrayControl({
     ...props,
@@ -192,10 +192,10 @@ export function useInputArrayControl<
   T = any,
   C extends ReactArrayControls = any
 >(
-  reactProps?: ReactControlProps<T> | FormState<T>,
-  validators?: ValidatorFn<T>[]
+  controlProps?: ReactControlProps<T> | FormState<T>,
+  controlValidators?: ValidatorFn<T>[]
 ): AbstractRolsterArrayControl<T, C, HTMLInputElement> {
-  const props = getReactControlProps(reactProps, validators);
+  const props = createReactControlProps(controlProps, controlValidators);
 
   return new RolsterArrayControl({
     ...props,

@@ -9,25 +9,29 @@ import {
 import { useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
 
-function instanceOfReactGroupProps<T extends ReactControls>(
+type ArgsGroupProps<C extends ReactControls> = [
+  FormGroupProps<C> | C,
+  Undefined<ValidatorGroupFn<C>[]>
+];
+
+function instanceOfGroupProps<C extends ReactControls>(
   props: any
-): props is FormGroupProps<T> {
+): props is FormGroupProps<C> {
   return (
     typeof props === 'object' && ('controls' in props || 'validators' in props)
   );
 }
 
-function getReactGroupProps<T extends ReactControls>(
-  props: FormGroupProps<T> | T,
-  validators?: ValidatorGroupFn<T>[]
-): FormGroupProps<T> {
-  if (instanceOfReactGroupProps<T>(props)) {
-    return props;
+function createReactGroupProps<C extends ReactControls>(
+  ...argsProps: ArgsGroupProps<C>
+): FormGroupProps<C> {
+  const [controls, validators] = argsProps;
+
+  if (argsProps.length < 2 && instanceOfGroupProps<C>(controls)) {
+    return controls;
   }
 
-  const controls = props as T;
-
-  return { controls, validators };
+  return { controls: controls as C, validators };
 }
 
 export function useFormGroup<T extends ReactControls>(
@@ -38,10 +42,10 @@ export function useFormGroup<T extends ReactControls>(
   validators?: ValidatorGroupFn<T>[]
 ): ReactGroup<T>;
 export function useFormGroup<T extends ReactControls>(
-  reactProps: FormGroupProps<T> | T,
-  validatorsFn?: ValidatorGroupFn<T>[]
+  groupProps: FormGroupProps<T> | T,
+  groupValidators?: ValidatorGroupFn<T>[]
 ): ReactGroup<T> {
-  const props = getReactGroupProps(reactProps, validatorsFn);
+  const props = createReactGroupProps(groupProps, groupValidators);
 
   const [validators, setValidators] = useState(props.validators);
 

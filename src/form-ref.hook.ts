@@ -8,7 +8,7 @@ import {
 import { ReactInputControl } from './types';
 
 interface ReactRefProps<T = any> extends FormControlProps<T> {
-  setValue: (r: ReactInputControl<T>, value: string) => void;
+  setValue: (inputControl: ReactInputControl<T>, value: string) => void;
   touched?: boolean;
 }
 
@@ -17,21 +17,25 @@ type InputRefProps<T = any> = Omit<ReactRefProps<T>, 'setValue'>;
 type TextRefProps = InputRefProps<string>;
 type NumberRefProps = InputRefProps<number>;
 
-function getInputRefControlProps<T = any>(
-  props?: InputRefProps<T> | FormState<T>,
-  validators?: ValidatorFn<T>[]
+type ArgsControlProps<T> = [
+  InputRefProps<T> | FormState<T>,
+  Undefined<ValidatorFn<T>[]>
+];
+
+function createInputRefControlProps<T>(
+  ...argsProps: ArgsControlProps<T>
 ): InputRefProps<T> {
-  if (props === undefined || props === null) {
+  if (argsProps.length < 1) {
     return { state: undefined, validators: undefined };
   }
 
-  if (instanceOfReactControlProps<T>(props)) {
-    return props;
+  const [state, validators] = argsProps;
+
+  if (argsProps.length < 2 && instanceOfReactControlProps<T>(state)) {
+    return state;
   }
 
-  const state = props as FormState<T>;
-
-  return { state, validators };
+  return { state: state as FormState<T>, validators };
 }
 
 function useInputRefControl<T = any>(props: ReactRefProps<T>) {
@@ -71,11 +75,11 @@ export function useTextRefControl(
   validators?: ValidatorFn<string>[]
 ): ReactInputControl<string>;
 export function useTextRefControl(
-  reactProps?: TextRefProps | FormState<string>,
-  validators?: ValidatorFn<string>[]
+  controlProps?: TextRefProps | FormState<string>,
+  controlValidators?: ValidatorFn<string>[]
 ): ReactInputControl<string> {
   return useInputRefControl({
-    ...getInputRefControlProps(reactProps, validators),
+    ...createInputRefControlProps(controlProps, controlValidators),
     setValue: (inputControl, value) => inputControl.setState(value)
   });
 }
@@ -89,11 +93,11 @@ export function useNumberRefControl(
   validators?: ValidatorFn<number>[]
 ): ReactInputControl<number>;
 export function useNumberRefControl(
-  reactProps?: NumberRefProps | FormState<number>,
-  validators?: ValidatorFn<number>[]
+  controlProps?: NumberRefProps | FormState<number>,
+  controlValidators?: ValidatorFn<number>[]
 ): ReactInputControl<number> {
   return useInputRefControl({
-    ...getInputRefControlProps(reactProps, validators),
+    ...createInputRefControlProps(controlProps, controlValidators),
     setValue: (inputControl, value) => inputControl.setState(+value)
   });
 }

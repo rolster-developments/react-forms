@@ -82,21 +82,25 @@ function instanceOfReactArrayProps<G extends ReactArrayControls, R = any>(
   );
 }
 
-function getReactArrayProps<G extends ReactArrayControls, R = any>(
-  props?: RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[],
-  validators?: ValidatorArrayFn<G, R>[]
+type ArgsArrayProps<G extends ReactArrayControls, R> = [
+  Undefined<RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[]>,
+  Undefined<ValidatorArrayFn<G, R>[]>
+];
+
+function createReactArrayProps<G extends ReactArrayControls, R>(
+  ...argsProps: ArgsArrayProps<G, R>
 ): RolsterArrayProps<G, R> {
-  if (props === undefined || props === null) {
+  if (argsProps.length < 1) {
     return { groups: undefined, validators: undefined };
   }
 
-  if (instanceOfReactArrayProps<G, R>(props)) {
-    return props;
+  const [groups, validators] = argsProps;
+
+  if (argsProps.length < 2 && instanceOfReactArrayProps<G, R>(groups)) {
+    return groups;
   }
 
-  const groups = props as AbstractRolsterArrayGroup<G, R>[];
-
-  return { groups, validators };
+  return { groups: groups as AbstractRolsterArrayGroup<G, R>[], validators };
 }
 
 export function useFormArray<
@@ -108,13 +112,13 @@ export function useFormArray<G extends ReactArrayControls, R = any>(
 ): ReactFormArray<G, R>;
 export function useFormArray<G extends ReactArrayControls, R = any>(
   groups: AbstractRolsterArrayGroup<G, R>[],
-  validatorsFn?: ValidatorArrayFn<G, R>[]
+  validators?: ValidatorArrayFn<G, R>[]
 ): ReactFormArray<G, R>;
 export function useFormArray<G extends ReactArrayControls, R = any>(
-  reactProps?: RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[],
-  validatorsFn?: ValidatorArrayFn<G, R>[]
+  arrayProps?: RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[],
+  arrayValidators?: ValidatorArrayFn<G, R>[]
 ): ReactFormArray<G, R> {
-  const props = getReactArrayProps(reactProps, validatorsFn);
+  const props = createReactArrayProps(arrayProps, arrayValidators);
 
   const [currentState] = useState(props.groups);
   const [state, setState] = useState<ArrayStateGroup<G>[]>([]);

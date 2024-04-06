@@ -90,7 +90,12 @@ type RolsterGroupProps<
   R = any
 > = Omit<FormArrayGroupProps<C, R>, 'uuid'>;
 
-function instanceOfReactArrayGroupProps<C extends RolsterArrayControls>(
+type ReactArrayGroupProps<C extends RolsterArrayControls> = [
+  RolsterGroupProps<C> | C,
+  Undefined<ValidatorGroupFn<C>[]>
+];
+
+function instanceOfArrayGroupProps<C extends RolsterArrayControls>(
   props: any
 ): props is RolsterGroupProps<C> {
   return (
@@ -98,17 +103,16 @@ function instanceOfReactArrayGroupProps<C extends RolsterArrayControls>(
   );
 }
 
-function getReactArrayGroupProps<C extends RolsterArrayControls>(
-  props: RolsterGroupProps<C> | C,
-  validators?: ValidatorGroupFn<C>[]
+function createArrayGroupProps<C extends RolsterArrayControls>(
+  ...argsProps: ReactArrayGroupProps<C>
 ): RolsterGroupProps<C> {
-  if (instanceOfReactArrayGroupProps<C>(props)) {
-    return props;
+  const [controls, validators] = argsProps;
+
+  if (argsProps.length < 2 && instanceOfArrayGroupProps<C>(controls)) {
+    return controls;
   }
 
-  const controls = props as C;
-
-  return { controls, validators };
+  return { controls: controls as C, validators };
 }
 
 export function useFormArrayGroup<
@@ -126,10 +130,10 @@ export function useFormArrayGroup<
   C extends RolsterArrayControls = RolsterArrayControls,
   R = any
 >(
-  reactProps: RolsterGroupProps<C, R> | C,
-  validators?: ValidatorGroupFn<C, R>[]
+  groupProps: RolsterGroupProps<C, R> | C,
+  groupValidators?: ValidatorGroupFn<C, R>[]
 ): AbstractRolsterArrayGroup<C, R> {
-  const props = getReactArrayGroupProps(reactProps, validators);
+  const props = createArrayGroupProps(groupProps, groupValidators);
 
   return new RolsterArrayGroup({ ...props, uuid: uuid() });
 }

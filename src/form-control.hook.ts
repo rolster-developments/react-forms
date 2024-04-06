@@ -13,7 +13,12 @@ interface ReactControlProps<T = any> extends FormControlProps<T> {
   touched?: boolean;
 }
 
-export function instanceOfReactControlProps<T = any>(
+type ArgsControlProps<T> = [
+  ReactControlProps<T> | FormState<T>,
+  Undefined<ValidatorFn<T>[]>
+];
+
+export function instanceOfReactControlProps<T>(
   props: any
 ): props is ReactControlProps<T> {
   return (
@@ -21,21 +26,20 @@ export function instanceOfReactControlProps<T = any>(
   );
 }
 
-export function getReactControlProps<T = any>(
-  props?: ReactControlProps<T> | FormState<T>,
-  validators?: ValidatorFn<T>[]
+export function createReactControlProps<T>(
+  ...argsProps: ArgsControlProps<T>
 ): ReactControlProps<T> {
-  if (props === undefined || props === null) {
+  if (argsProps.length < 1) {
     return { state: undefined, validators: undefined };
   }
 
-  if (instanceOfReactControlProps<T>(props)) {
-    return props;
+  const [state, validators] = argsProps;
+
+  if (argsProps.length < 2 && instanceOfReactControlProps<T>(state)) {
+    return state;
   }
 
-  const state = props as FormState<T>;
-
-  return { state, validators };
+  return { state: state as FormState<T>, validators };
 }
 
 export function useReactControl<
@@ -50,10 +54,10 @@ export function useReactControl<E extends HTMLElement, T = any>(
   validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T = any>(
-  reactProps?: ReactControlProps<T> | FormState<T>,
-  validatorsFn?: ValidatorFn<T>[]
+  controlProps?: ReactControlProps<T> | FormState<T>,
+  controlValidators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T> {
-  const props = getReactControlProps(reactProps, validatorsFn);
+  const props = createReactControlProps(controlProps, controlValidators);
 
   const [state, setCurrentState] = useState<FormState<T>>(props.state);
   const [value, setValue] = useState<T>(props.state as T);
@@ -163,12 +167,12 @@ export function useFormControl<T = any>(
   validators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T>;
 export function useFormControl<T = any>(
-  reactProps?: ReactControlProps<T> | FormState<T>,
-  validatorsFn?: ValidatorFn<T>[]
+  controlProps?: ReactControlProps<T> | FormState<T>,
+  controlValidators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T> {
-  return instanceOfReactControlProps<T>(reactProps)
-    ? useReactControl<HTMLElement, T>(reactProps)
-    : useReactControl<HTMLElement, T>(reactProps, validatorsFn);
+  return instanceOfReactControlProps<T>(controlProps)
+    ? useReactControl<HTMLElement, T>(controlProps)
+    : useReactControl<HTMLElement, T>(controlProps, controlValidators);
 }
 
 export function useInputControl<T = any>(): ReactInputControl<T>;
@@ -180,10 +184,10 @@ export function useInputControl<T = any>(
   validators?: ValidatorFn<T>[]
 ): ReactInputControl<T>;
 export function useInputControl<T = any>(
-  reactProps?: ReactControlProps<T> | FormState<T>,
-  validatorsFn?: ValidatorFn<T>[]
+  controlProps?: ReactControlProps<T> | FormState<T>,
+  controlValidators?: ValidatorFn<T>[]
 ): ReactInputControl<T> {
-  return instanceOfReactControlProps<T>(reactProps)
-    ? useReactControl<HTMLInputElement, T>(reactProps)
-    : useReactControl<HTMLInputElement, T>(reactProps, validatorsFn);
+  return instanceOfReactControlProps<T>(controlProps)
+    ? useReactControl<HTMLInputElement, T>(controlProps)
+    : useReactControl<HTMLInputElement, T>(controlProps, controlValidators);
 }
