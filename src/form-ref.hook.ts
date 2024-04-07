@@ -25,17 +25,17 @@ type ArgsControlProps<T> = [
 function createInputRefControlProps<T>(
   ...argsProps: ArgsControlProps<T>
 ): InputRefProps<T> {
-  if (argsProps.length < 1) {
+  const [props, validators] = argsProps;
+
+  if (!props) {
     return { state: undefined, validators: undefined };
   }
 
-  const [state, validators] = argsProps;
-
-  if (argsProps.length < 2 && instanceOfReactControlProps<T>(state)) {
-    return state;
+  if (!validators && instanceOfReactControlProps<T>(props)) {
+    return props;
   }
 
-  return { state: state as FormState<T>, validators };
+  return { state: props as FormState<T>, validators };
 }
 
 function useInputRefControl<T = any>(props: ReactRefProps<T>) {

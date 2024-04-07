@@ -98,21 +98,19 @@ type ReactArrayGroupProps<C extends RolsterArrayControls> = [
 function instanceOfArrayGroupProps<C extends RolsterArrayControls>(
   props: any
 ): props is RolsterGroupProps<C> {
-  return (
-    typeof props === 'object' && ('controls' in props || 'validators' in props)
-  );
+  return typeof props === 'object' && 'controls' in props;
 }
 
 function createArrayGroupProps<C extends RolsterArrayControls>(
   ...argsProps: ReactArrayGroupProps<C>
 ): RolsterGroupProps<C> {
-  const [controls, validators] = argsProps;
+  const [props, validators] = argsProps;
 
-  if (argsProps.length < 2 && instanceOfArrayGroupProps<C>(controls)) {
-    return controls;
+  if (!validators && instanceOfArrayGroupProps<C>(props)) {
+    return props;
   }
 
-  return { controls: controls as C, validators };
+  return { controls: props as C, validators };
 }
 
 export function useFormArrayGroup<

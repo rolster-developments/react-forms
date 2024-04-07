@@ -17,21 +17,19 @@ type ArgsGroupProps<C extends ReactControls> = [
 function instanceOfGroupProps<C extends ReactControls>(
   props: any
 ): props is FormGroupProps<C> {
-  return (
-    typeof props === 'object' && ('controls' in props || 'validators' in props)
-  );
+  return typeof props === 'object' && 'controls' in props;
 }
 
 function createReactGroupProps<C extends ReactControls>(
   ...argsProps: ArgsGroupProps<C>
 ): FormGroupProps<C> {
-  const [controls, validators] = argsProps;
+  const [props, validators] = argsProps;
 
-  if (argsProps.length < 2 && instanceOfGroupProps<C>(controls)) {
-    return controls;
+  if (!validators && instanceOfGroupProps<C>(props)) {
+    return props;
   }
 
-  return { controls: controls as C, validators };
+  return { controls: props as C, validators };
 }
 
 export function useFormGroup<T extends ReactControls>(

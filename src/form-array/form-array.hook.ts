@@ -74,6 +74,11 @@ type RolsterArrayProps<
   R = any
 > = FormArrayProps<C, R, AbstractRolsterArrayGroup<C, R>>;
 
+type ArgsArrayProps<G extends ReactArrayControls, R> = [
+  Undefined<RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[]>,
+  Undefined<ValidatorArrayFn<G, R>[]>
+];
+
 function instanceOfReactArrayProps<G extends ReactArrayControls, R = any>(
   props: any
 ): props is RolsterArrayProps<G, R> {
@@ -82,25 +87,20 @@ function instanceOfReactArrayProps<G extends ReactArrayControls, R = any>(
   );
 }
 
-type ArgsArrayProps<G extends ReactArrayControls, R> = [
-  Undefined<RolsterArrayProps<G> | AbstractRolsterArrayGroup<G, R>[]>,
-  Undefined<ValidatorArrayFn<G, R>[]>
-];
-
 function createReactArrayProps<G extends ReactArrayControls, R>(
   ...argsProps: ArgsArrayProps<G, R>
 ): RolsterArrayProps<G, R> {
-  if (argsProps.length < 1) {
+  const [props, validators] = argsProps;
+
+  if (!props) {
     return { groups: undefined, validators: undefined };
   }
 
-  const [groups, validators] = argsProps;
-
-  if (argsProps.length < 2 && instanceOfReactArrayProps<G, R>(groups)) {
-    return groups;
+  if (!validators && instanceOfReactArrayProps<G, R>(props)) {
+    return props;
   }
 
-  return { groups: groups as AbstractRolsterArrayGroup<G, R>[], validators };
+  return { groups: props as AbstractRolsterArrayGroup<G, R>[], validators };
 }
 
 export function useFormArray<
