@@ -2,7 +2,8 @@ import {
   ArrayStateGroup,
   ArrayValueGroup,
   FormArrayGroupProps,
-  ValidatorGroupFn
+  ValidatorGroupFn,
+  createFormGroupProps
 } from '@rolster/helpers-forms';
 import {
   controlsAllChecked,
@@ -47,7 +48,7 @@ export class RolsterArrayGroup<
 
   parent?: RolsterFormArray<C>;
 
-  constructor(props: FormArrayGroupProps<C>) {
+  constructor(props: FormArrayGroupProps<C, R>) {
     const { controls, resource, uuid, validators } = props;
 
     Object.values(controls).forEach((control) => (control.group = this));
@@ -90,29 +91,6 @@ type RolsterGroupProps<
   R = any
 > = Omit<FormArrayGroupProps<C, R>, 'uuid'>;
 
-type ReactArrayGroupProps<C extends RolsterArrayControls> = [
-  RolsterGroupProps<C> | C,
-  Undefined<ValidatorGroupFn<C>[]>
-];
-
-function instanceOfArrayGroupProps<C extends RolsterArrayControls>(
-  props: any
-): props is RolsterGroupProps<C> {
-  return typeof props === 'object' && 'controls' in props;
-}
-
-function createArrayGroupProps<C extends RolsterArrayControls>(
-  ...argsProps: ReactArrayGroupProps<C>
-): RolsterGroupProps<C> {
-  const [props, validators] = argsProps;
-
-  if (!validators && instanceOfArrayGroupProps<C>(props)) {
-    return props;
-  }
-
-  return { controls: props as C, validators };
-}
-
 export function useFormArrayGroup<
   C extends RolsterArrayControls = RolsterArrayControls,
   R = any
@@ -131,7 +109,10 @@ export function useFormArrayGroup<
   groupProps: RolsterGroupProps<C, R> | C,
   groupValidators?: ValidatorGroupFn<C, R>[]
 ): AbstractRolsterArrayGroup<C, R> {
-  const props = createArrayGroupProps(groupProps, groupValidators);
+  const props = createFormGroupProps<C, RolsterGroupProps<C, R>>(
+    groupProps,
+    groupValidators
+  );
 
   return new RolsterArrayGroup({ ...props, uuid: uuid() });
 }

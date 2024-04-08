@@ -1,8 +1,8 @@
 import {
   AbstractArray,
   AbstractArrayControl,
-  AbstractArrayControls,
   AbstractArrayGroup,
+  AbstractArrayGroupControls,
   AbstractFormControl,
   AbstractFormGroup,
   AbstractGroupControls
@@ -40,7 +40,7 @@ export type ReactGroup<T extends ReactControls> = AbstractFormGroup<T>;
 
 export type ReactArrayControls<
   T extends ReactArrayControl = ReactArrayControl
-> = AbstractArrayControls<T>;
+> = AbstractArrayGroupControls<T>;
 
 export type ReactArrayGroup<
   T extends ReactArrayControls,

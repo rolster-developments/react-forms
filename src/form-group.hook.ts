@@ -1,4 +1,8 @@
-import { FormGroupProps, ValidatorGroupFn } from '@rolster/helpers-forms';
+import {
+  FormGroupProps,
+  ValidatorGroupFn,
+  createFormGroupProps
+} from '@rolster/helpers-forms';
 import {
   controlsAllChecked,
   controlsPartialChecked,
@@ -8,29 +12,6 @@ import {
 } from '@rolster/helpers-forms/helpers';
 import { useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
-
-type ArgsGroupProps<C extends ReactControls> = [
-  FormGroupProps<C> | C,
-  Undefined<ValidatorGroupFn<C>[]>
-];
-
-function instanceOfGroupProps<C extends ReactControls>(
-  props: any
-): props is FormGroupProps<C> {
-  return typeof props === 'object' && 'controls' in props;
-}
-
-function createReactGroupProps<C extends ReactControls>(
-  ...argsProps: ArgsGroupProps<C>
-): FormGroupProps<C> {
-  const [props, validators] = argsProps;
-
-  if (!validators && instanceOfGroupProps<C>(props)) {
-    return props;
-  }
-
-  return { controls: props as C, validators };
-}
 
 export function useFormGroup<T extends ReactControls>(
   props: FormGroupProps<T>
@@ -43,7 +24,10 @@ export function useFormGroup<T extends ReactControls>(
   groupProps: FormGroupProps<T> | T,
   groupValidators?: ValidatorGroupFn<T>[]
 ): ReactGroup<T> {
-  const props = createReactGroupProps(groupProps, groupValidators);
+  const props = createFormGroupProps<T, FormGroupProps<T>>(
+    groupProps,
+    groupValidators
+  );
 
   const [validators, setValidators] = useState(props.validators);
 

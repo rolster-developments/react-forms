@@ -1,10 +1,11 @@
-import { FormControlProps, FormState } from '@rolster/helpers-forms';
+import {
+  FormControlProps,
+  FormState,
+  createFormControlProps
+} from '@rolster/helpers-forms';
 import { ValidatorFn } from '@rolster/validators';
 import { useEffect } from 'react';
-import {
-  instanceOfReactControlProps,
-  useInputControl
-} from './form-control.hook';
+import { useInputControl } from './form-control.hook';
 import { ReactInputControl } from './types';
 
 interface ReactRefProps<T = any> extends FormControlProps<T> {
@@ -16,27 +17,6 @@ type InputRefProps<T = any> = Omit<ReactRefProps<T>, 'setValue'>;
 
 type TextRefProps = InputRefProps<string>;
 type NumberRefProps = InputRefProps<number>;
-
-type ArgsControlProps<T> = [
-  InputRefProps<T> | FormState<T>,
-  Undefined<ValidatorFn<T>[]>
-];
-
-function createInputRefControlProps<T>(
-  ...argsProps: ArgsControlProps<T>
-): InputRefProps<T> {
-  const [props, validators] = argsProps;
-
-  if (!props) {
-    return { state: undefined, validators: undefined };
-  }
-
-  if (!validators && instanceOfReactControlProps<T>(props)) {
-    return props;
-  }
-
-  return { state: props as FormState<T>, validators };
-}
 
 function useInputRefControl<T = any>(props: ReactRefProps<T>) {
   const { setValue, state, validators } = props;
@@ -79,7 +59,10 @@ export function useTextRefControl(
   controlValidators?: ValidatorFn<string>[]
 ): ReactInputControl<string> {
   return useInputRefControl({
-    ...createInputRefControlProps(controlProps, controlValidators),
+    ...createFormControlProps<string, InputRefProps<string>>(
+      controlProps,
+      controlValidators
+    ),
     setValue: (inputControl, value) => inputControl.setState(value)
   });
 }
@@ -97,7 +80,10 @@ export function useNumberRefControl(
   controlValidators?: ValidatorFn<number>[]
 ): ReactInputControl<number> {
   return useInputRefControl({
-    ...createInputRefControlProps(controlProps, controlValidators),
+    ...createFormControlProps<number, InputRefProps<number>>(
+      controlProps,
+      controlValidators
+    ),
     setValue: (inputControl, value) => inputControl.setState(+value)
   });
 }
