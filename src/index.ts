@@ -1,4 +1,7 @@
 export {
+  cloneFormArrayControl,
+  cloneFormArrayGroup,
+  cloneFormControlForArrayGroup,
   useFormArray,
   useFormArrayControl,
   useFormArrayGroup,
