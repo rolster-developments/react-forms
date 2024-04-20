@@ -28,7 +28,7 @@ import {
   RolsterFormArray
 } from './types';
 
-function cloneFormArrayControl<
+export function cloneFormArrayControl<
   T = any,
   C extends ReactArrayControls = ReactArrayControls,
   E extends HTMLElement = HTMLElement
@@ -39,14 +39,14 @@ function cloneFormArrayControl<
   return new RolsterArrayControl({ ...control, ...changes });
 }
 
-function cloneFormArrayGroup<C extends ReactArrayControls = ReactArrayControls>(
+export function cloneFormArrayGroup<C extends ReactArrayControls = ReactArrayControls>(
   group: AbstractRolsterArrayGroup<C>,
   changes: Partial<FormArrayGroupProps<C>>
 ): ReactArrayGroup<C> {
   return new RolsterArrayGroup({ ...group, ...changes });
 }
 
-function cloneFormControlForArrayGroup<
+export function cloneFormControlForArrayGroup<
   T = any,
   C extends ReactArrayControls = ReactArrayControls
 >(
