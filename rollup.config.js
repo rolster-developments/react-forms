@@ -32,7 +32,13 @@ const rollupTs = (file) => {
         inlineDynamicImports: true
       }
     ],
-    external: ['@rolster/helpers-forms', '@rolster/validators', 'rxjs', 'uuid'],
+    external: [
+      '@rolster/helpers-forms',
+      '@rolster/helpers-forms/helpers',
+      '@rolster/validators',
+      'rxjs',
+      'uuid'
+    ],
     plugins
   };
 };
