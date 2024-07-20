@@ -1,13 +1,11 @@
 import {
   FormControlProps,
   FormState,
-  SubscriberControl,
   createFormControlProps
 } from '@rolster/helpers-forms';
 import { controlIsValid } from '@rolster/helpers-forms/helpers';
 import { ValidatorFn } from '@rolster/validators';
 import { useEffect, useRef, useState } from 'react';
-import { BehaviorSubject } from 'rxjs';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
 
 interface ReactControlProps<T = any> extends FormControlProps<T> {
@@ -31,24 +29,17 @@ function useControl<E extends HTMLElement, T = any>(
   const [disabled, setDisabled] = useState<boolean>(false);
   const [initialValue] = useState<FormState<T>>(props.state);
   const [validators, setValidators] = useState(props.validators);
-  const [subscribers] = useState<BehaviorSubject<FormState<T>>>(
-    new BehaviorSubject(props.state)
-  );
 
   const elementRef = useRef<E>(null);
 
-  const errors = (() =>
-    validators ? controlIsValid({ state, validators }) : [])();
-
-  const error = (() => errors[0])();
-  const valid = (() => errors.length === 0)();
+  const errors = validators ? controlIsValid({ state, validators }) : [];
+  const error = errors[0];
+  const valid = errors.length === 0;
 
   useEffect(() => {
     if (state !== null && state !== undefined) {
       setValue(state);
     }
-
-    subscribers.next(state);
   }, [state]);
 
   function focus(): void {
@@ -86,12 +77,6 @@ function useControl<E extends HTMLElement, T = any>(
     setCurrentState(initialValue);
   }
 
-  function subscribe(subscriber: SubscriberControl<T>): Unsubscription {
-    const subscription = subscribers.subscribe(subscriber);
-
-    return () => subscription.unsubscribe();
-  }
-
   return {
     blur,
     dirty,
@@ -110,7 +95,6 @@ function useControl<E extends HTMLElement, T = any>(
     setState,
     setValidators,
     state,
-    subscribe,
     touch,
     touched,
     unfocused: !focused,

@@ -10,7 +10,7 @@ import {
 import { RefObject } from 'react';
 
 export interface ReactFormControl<E extends HTMLElement = HTMLElement, T = any>
-  extends AbstractFormControl<T> {
+  extends Omit<AbstractFormControl<T>, 'subscribe'> {
   elementRef?: RefObject<E>;
 }
 
