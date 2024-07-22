@@ -4,14 +4,14 @@ import {
   FormArrayGroupProps,
   ValidatorGroupFn,
   createFormGroupProps
-} from '@rolster/helpers-forms';
+} from '@rolster/forms';
 import {
   controlsAllChecked,
   controlsPartialChecked,
   controlsToState,
   controlsToValue,
   groupIsValid
-} from '@rolster/helpers-forms/helpers';
+} from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
 import {
@@ -51,7 +51,9 @@ export class RolsterArrayGroup<
   constructor(props: FormArrayGroupProps<C, R>) {
     const { controls, resource, uuid, validators } = props;
 
-    Object.values(controls).forEach((control) => (control.group = this));
+    Object.values(controls).forEach((control) => {
+      //control.group = this;
+    });
 
     this.uuid = uuid;
     this.controls = controls;

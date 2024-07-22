@@ -2,8 +2,8 @@ import {
   FormArrayControlProps,
   FormState,
   createFormControlProps
-} from '@rolster/helpers-forms';
-import { controlIsValid } from '@rolster/helpers-forms/helpers';
+} from '@rolster/forms';
+import { controlIsValid } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';

@@ -1,31 +1,30 @@
 import {
-  FormGroupProps,
+  FormGroupOptions,
   ValidatorGroupFn,
-  createFormGroupProps
-} from '@rolster/helpers-forms';
+  createFormGroupOptions
+} from '@rolster/forms';
 import {
   controlsAllChecked,
   controlsPartialChecked,
   controlsToState,
-  controlsToValue,
   groupIsValid
-} from '@rolster/helpers-forms/helpers';
+} from '@rolster/forms/helpers';
 import { useState } from 'react';
-import { ReactControls, ReactGroup } from './types';
+import { ReactControls, ReactFormGroup } from './types';
 
-export function useFormGroup<T extends ReactControls>(
-  props: FormGroupProps<T>
-): ReactGroup<T>;
-export function useFormGroup<T extends ReactControls>(
-  controls: T,
-  validators?: ValidatorGroupFn<T>[]
-): ReactGroup<T>;
-export function useFormGroup<T extends ReactControls>(
-  groupProps: FormGroupProps<T> | T,
-  groupValidators?: ValidatorGroupFn<T>[]
-): ReactGroup<T> {
-  const props = createFormGroupProps<T, FormGroupProps<T>>(
-    groupProps,
+export function useFormGroup<C extends ReactControls>(
+  options: FormGroupOptions<C>
+): ReactFormGroup<C>;
+export function useFormGroup<C extends ReactControls>(
+  controls: C,
+  validators?: ValidatorGroupFn<C>[]
+): ReactFormGroup<C>;
+export function useFormGroup<C extends ReactControls>(
+  groupOptions: FormGroupOptions<C> | C,
+  groupValidators?: ValidatorGroupFn<C>[]
+): ReactFormGroup<C> {
+  const props = createFormGroupOptions<C, FormGroupOptions<C>>(
+    groupOptions,
     groupValidators
   );
 
@@ -33,22 +32,18 @@ export function useFormGroup<T extends ReactControls>(
 
   const { controls } = props;
 
-  const errors = (() =>
-    validators ? groupIsValid({ controls, validators }) : [])();
-
-  const valid = (() =>
-    errors.length === 0 && controlsAllChecked(controls, 'valid'))();
-
-  const touched = (() => controlsPartialChecked(controls, 'touched'))();
-  const toucheds = (() => controlsAllChecked(controls, 'touched'))();
-  const dirty = (() => controlsPartialChecked(controls, 'dirty'))();
-  const dirties = (() => controlsAllChecked(controls, 'dirty'))();
-
-  const state = (() => controlsToState(controls))();
-  const value = (() => controlsToValue(controls))();
+  const errors = validators ? groupIsValid({ controls, validators }) : [];
+  const valid = errors.length === 0 && controlsAllChecked(controls, 'valid');
+  const touched = controlsPartialChecked(controls, 'touched');
+  const toucheds = controlsAllChecked(controls, 'touched');
+  const dirty = controlsPartialChecked(controls, 'dirty');
+  const dirties = controlsAllChecked(controls, 'dirty');
+  const state = controlsToState(controls);
 
   function reset(): void {
-    Object.values(controls).forEach((control) => control.reset());
+    Object.values(controls).forEach((control) => {
+      control.reset();
+    });
   }
 
   return {
@@ -68,7 +63,6 @@ export function useFormGroup<T extends ReactControls>(
     untouched: !touched,
     untoucheds: !toucheds,
     valid,
-    value,
     wrong: touched && !valid
   };
 }

@@ -5,13 +5,13 @@ import {
   FormArrayProps,
   ValidatorArrayFn,
   createFormArrayProps
-} from '@rolster/helpers-forms';
+} from '@rolster/forms';
 import {
   arrayIsValid,
   controlsToState,
   groupAllChecked,
   groupPartialChecked
-} from '@rolster/helpers-forms/helpers';
+} from '@rolster/forms/helpers';
 import { useEffect, useState } from 'react';
 import {
   ReactArrayControl,
@@ -39,7 +39,9 @@ export function cloneFormArrayControl<
   return new RolsterArrayControl({ ...control, ...changes });
 }
 
-export function cloneFormArrayGroup<C extends ReactArrayControls = ReactArrayControls>(
+export function cloneFormArrayGroup<
+  C extends ReactArrayControls = ReactArrayControls
+>(
   group: AbstractRolsterArrayGroup<C>,
   changes: Partial<FormArrayGroupProps<C>>
 ): ReactArrayGroup<C> {

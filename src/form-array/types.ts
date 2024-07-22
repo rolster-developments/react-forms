@@ -3,7 +3,7 @@ import {
   FormArrayGroupProps,
   FormState,
   ValidatorGroupFn
-} from '@rolster/helpers-forms';
+} from '@rolster/forms';
 import { ValidatorFn } from '@rolster/validators';
 import {
   ReactArrayControl,
