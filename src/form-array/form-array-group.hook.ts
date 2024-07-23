@@ -1,29 +1,29 @@
 import {
   ArrayStateGroup,
-  ArrayValueGroup,
-  FormArrayGroupProps,
-  ValidatorGroupFn,
-  createFormGroupProps
+  FormArrayGroupOptions,
+  ValidatorGroupFn
 } from '@rolster/forms';
+import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
   controlsAllChecked,
   controlsPartialChecked,
   controlsToState,
-  controlsToValue,
   groupIsValid
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
 import {
-  AbstractRolsterArrayGroup,
-  RolsterArrayControls,
-  RolsterFormArray
-} from './types';
+  ReactArrayControls,
+  ReactArrayGroup,
+  ReactSubscriberControl,
+  ReactSubscriberGroup
+} from '../types';
+import { RolsterArrayControl } from './form-array-control.hook';
 
 export class RolsterArrayGroup<
-  C extends RolsterArrayControls = RolsterArrayControls,
+  C extends ReactArrayControls = ReactArrayControls,
   R = any
-> implements AbstractRolsterArrayGroup<C, R>
+> implements ReactArrayGroup<C, R>
 {
   public readonly uuid: string;
   public readonly resource?: R;
@@ -42,18 +42,12 @@ export class RolsterArrayGroup<
   public readonly wrong: boolean;
   public readonly error?: ValidatorError<any>;
   public readonly validators?: ValidatorGroupFn<C>[];
-
   public readonly state: ArrayStateGroup<C>;
-  public readonly value: ArrayValueGroup<C>;
 
-  parent?: RolsterFormArray<C>;
+  private subscriber?: ReactSubscriberGroup<C, R>;
 
-  constructor(props: FormArrayGroupProps<C, R>) {
-    const { controls, resource, uuid, validators } = props;
-
-    Object.values(controls).forEach((control) => {
-      //control.group = this;
-    });
+  constructor(options: FormArrayGroupOptions<C, R>) {
+    const { controls, resource, uuid, validators } = options;
 
     this.uuid = uuid;
     this.controls = controls;
@@ -61,16 +55,15 @@ export class RolsterArrayGroup<
     this.resource = resource;
 
     this.errors = validators ? groupIsValid({ controls, validators }) : [];
-
     this.error = this.errors[0];
     this.valid =
       this.errors.length === 0 && controlsAllChecked(controls, 'valid');
     this.invalid = !this.valid;
 
-    this.touched = controlsPartialChecked(controls, 'touched');
-    this.toucheds = controlsAllChecked(controls, 'touched');
     this.dirty = controlsPartialChecked(controls, 'dirty');
     this.dirties = controlsAllChecked(controls, 'dirty');
+    this.touched = controlsPartialChecked(controls, 'touched');
+    this.toucheds = controlsAllChecked(controls, 'touched');
 
     this.untouched = !this.touched;
     this.untoucheds = !this.toucheds;
@@ -80,41 +73,67 @@ export class RolsterArrayGroup<
     this.wrong = this.touched && this.invalid;
 
     this.state = controlsToState(controls);
-    this.value = controlsToValue(controls);
+
+    const subscriber: ReactSubscriberControl = (options) => {
+      this.update({
+        controls: Object.entries(this.controls).reduce(
+          (controls: ReactArrayControls, [key, control]) => {
+            controls[key] =
+              control.uuid === options.uuid
+                ? new RolsterArrayControl(options)
+                : control;
+
+            return controls;
+          },
+          {}
+        )
+      });
+    };
+
+    Object.values(controls).forEach((control) => {
+      control.subscribe(subscriber);
+    });
   }
 
   public setValidators(validators: ValidatorGroupFn<C>[]): void {
-    this.parent?.refreshGroup(this, { validators });
+    this.update({ validators });
+  }
+
+  public subscribe(listener: ReactSubscriberGroup<C, R>): void {
+    this.subscriber = listener;
+  }
+
+  private update(changes: Partial<ReactSubscriberGroup<C, R>>): void {
+    if (this.subscriber) {
+      this.subscriber({ ...this, ...changes });
+    }
   }
 }
 
-type RolsterGroupProps<
-  C extends RolsterArrayControls = RolsterArrayControls,
+type RolsterGroupOptions<
+  C extends ReactArrayControls = ReactArrayControls,
   R = any
-> = Omit<FormArrayGroupProps<C, R>, 'uuid'>;
+> = Omit<FormArrayGroupOptions<C, R>, 'uuid'>;
 
 export function useFormArrayGroup<
-  C extends RolsterArrayControls = RolsterArrayControls,
+  C extends ReactArrayControls = ReactArrayControls,
   R = any
->(props: RolsterGroupProps<C, R>): AbstractRolsterArrayGroup<C, R>;
+>(options: RolsterGroupOptions<C, R>): ReactArrayGroup<C, R>;
 export function useFormArrayGroup<
-  C extends RolsterArrayControls = RolsterArrayControls,
+  C extends ReactArrayControls = ReactArrayControls,
+  R = any
+>(controls: C, validators?: ValidatorGroupFn<C, R>[]): ReactArrayGroup<C, R>;
+export function useFormArrayGroup<
+  C extends ReactArrayControls = ReactArrayControls,
   R = any
 >(
-  controls: C,
+  options: RolsterGroupOptions<C, R> | C,
   validators?: ValidatorGroupFn<C, R>[]
-): AbstractRolsterArrayGroup<C, R>;
-export function useFormArrayGroup<
-  C extends RolsterArrayControls = RolsterArrayControls,
-  R = any
->(
-  groupProps: RolsterGroupProps<C, R> | C,
-  groupValidators?: ValidatorGroupFn<C, R>[]
-): AbstractRolsterArrayGroup<C, R> {
-  const props = createFormGroupProps<C, RolsterGroupProps<C, R>>(
-    groupProps,
-    groupValidators
+): ReactArrayGroup<C, R> {
+  const groupOptions = createFormGroupOptions<C, RolsterGroupOptions<C, R>>(
+    options,
+    validators
   );
 
-  return new RolsterArrayGroup({ ...props, uuid: uuid() });
+  return new RolsterArrayGroup({ ...groupOptions, uuid: uuid() });
 }

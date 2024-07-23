@@ -1,4 +1,5 @@
-import { FormControlOptions, createFormControlOptions } from '@rolster/forms';
+import { FormControlOptions } from '@rolster/forms';
+import { createFormControlOptions } from '@rolster/forms/arguments';
 import { controlIsValid } from '@rolster/forms/helpers';
 import { ValidatorFn } from '@rolster/validators';
 import { useRef, useState } from 'react';
@@ -39,7 +40,6 @@ function useControl<E extends HTMLElement, T = any>(
   const elementRef = useRef<E>(null);
 
   const errors = validators ? controlIsValid({ state, validators }) : [];
-  const error = errors[0];
   const valid = errors.length === 0;
 
   function focus(): void {
@@ -67,8 +67,8 @@ function useControl<E extends HTMLElement, T = any>(
   }
 
   function setState(state: T): void {
-    setControlState((controlState) => ({
-      ...controlState,
+    setControlState((currentState) => ({
+      ...currentState,
       dirty: true,
       state
     }));
@@ -79,8 +79,8 @@ function useControl<E extends HTMLElement, T = any>(
   }
 
   function reset(): void {
-    setControlState((controlState) => ({
-      ...controlState,
+    setControlState((currentState) => ({
+      ...currentState,
       dirty: false,
       state: initialState.current,
       touched: false
@@ -94,7 +94,7 @@ function useControl<E extends HTMLElement, T = any>(
     elementRef,
     enable,
     enabled: !controlState.disabled,
-    error,
+    error: errors[0],
     errors,
     focus,
     invalid: !valid,

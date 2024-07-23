@@ -1,88 +1,89 @@
-import { FormControlProps, createFormControlProps } from '@rolster/forms';
+import { FormControlOptions } from '@rolster/forms';
+import { createFormControlOptions } from '@rolster/forms/arguments';
 import { ValidatorFn } from '@rolster/validators';
 import { useEffect } from 'react';
 import { useInputControl } from './form-control.hook';
 import { ReactInputControl } from './types';
 
-interface ReactRefProps<T = any> extends FormControlProps<T> {
-  setValue: (inputControl: ReactInputControl<T>, value: string) => void;
+interface ReactRefOptions<T = any> extends FormControlOptions<T> {
+  setValue: (control: ReactInputControl<T>, value: string) => void;
   touched?: boolean;
 }
 
-type InputRefProps<T = any> = Omit<ReactRefProps<T>, 'setValue'>;
-type TextRefProps = InputRefProps<string>;
-type NumberRefProps = InputRefProps<number>;
+type InputRefOptions<T = any> = Omit<ReactRefOptions<T>, 'setValue'>;
+type TextRefOptions = InputRefOptions<string>;
+type NumberRefOptions = InputRefOptions<number>;
 
-function useInputRefControl<T = any>(props: ReactRefProps<T>) {
-  const { setValue, state, validators } = props;
+function useInputRefControl<T = any>(options: ReactRefOptions<T>) {
+  const { setValue, state, validators } = options;
 
-  const inputControl = useInputControl(state, validators);
+  const control = useInputControl(state, validators);
 
   useEffect(() => {
-    const { elementRef } = inputControl;
+    const { elementRef } = control;
 
     elementRef?.current?.addEventListener('focus', () => {
-      inputControl.focus();
+      control.focus();
     });
 
     elementRef?.current?.addEventListener('blur', () => {
-      inputControl.blur();
+      control.blur();
 
-      if (!inputControl.touched) {
-        inputControl.touch();
+      if (!control.touched) {
+        control.touch();
       }
     });
 
     elementRef?.current?.addEventListener('change', ({ target }) => {
-      setValue(inputControl, (target as HTMLInputElement).value);
+      setValue(control, (target as HTMLInputElement).value);
     });
   }, []);
 
-  return inputControl;
+  return control;
 }
 
 export function useTextRefControl(): ReactInputControl<string>;
 export function useTextRefControl(
-  props: TextRefProps
+  options: TextRefOptions
 ): ReactInputControl<string>;
 export function useTextRefControl(
   state: string,
   validators?: ValidatorFn<string>[]
 ): ReactInputControl<string>;
 export function useTextRefControl(
-  controlProps?: TextRefProps | string,
-  controlValidators?: ValidatorFn<string>[]
+  options?: TextRefOptions | string,
+  validators?: ValidatorFn<string>[]
 ): ReactInputControl<string> {
   return useInputRefControl({
-    ...createFormControlProps<string, InputRefProps<string>>(
-      controlProps,
-      controlValidators
+    ...createFormControlOptions<string, InputRefOptions<string>>(
+      options,
+      validators
     ),
-    setValue: (inputControl, value) => {
-      inputControl.setState(value);
+    setValue: (control, value) => {
+      control.setState(value);
     }
   });
 }
 
 export function useNumberRefControl(): ReactInputControl<number>;
 export function useNumberRefControl(
-  props: NumberRefProps
+  options: NumberRefOptions
 ): ReactInputControl<number>;
 export function useNumberRefControl(
   state: number,
   validators?: ValidatorFn<number>[]
 ): ReactInputControl<number>;
 export function useNumberRefControl(
-  controlProps?: NumberRefProps | number,
-  controlValidators?: ValidatorFn<number>[]
+  options?: NumberRefOptions | number,
+  validators?: ValidatorFn<number>[]
 ): ReactInputControl<number> {
   return useInputRefControl({
-    ...createFormControlProps<number, InputRefProps<number>>(
-      controlProps,
-      controlValidators
+    ...createFormControlOptions<number, InputRefOptions<number>>(
+      options,
+      validators
     ),
-    setValue: (inputControl, value) => {
-      inputControl.setState(+value);
+    setValue: (control, value) => {
+      control.setState(+value);
     }
   });
 }

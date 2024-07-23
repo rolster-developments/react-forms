@@ -1,4 +1,11 @@
 export {
+  useFormArray,
+  useFormArrayControl,
+  useFormArrayGroup,
+  useInputArrayControl,
+  useReactArrayControl
+} from './form-array';
+export {
   useFormControl,
   useInputControl,
   useReactControl

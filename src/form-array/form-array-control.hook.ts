@@ -1,26 +1,22 @@
-import {
-  FormArrayControlProps,
-  FormState,
-  createFormControlProps
-} from '@rolster/forms';
+import { FormArrayControlOptions } from '@rolster/forms';
+import { createFormControlOptions } from '@rolster/forms/arguments';
 import { controlIsValid } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
-import { ReactArrayControls } from '../types';
 import {
-  AbstractRolsterArrayControl,
-  AbstractRolsterArrayGroup,
-  AbtractFormArrayControlProps
-} from './types';
+  ReactArrayControl,
+  ReactArrayControlOptions,
+  ReactSubscriberControl,
+  ReactHtmlArrayControl,
+  ReactInputArrayControl
+} from '../types';
 
-export class RolsterArrayControl<
-  T = any,
-  C extends ReactArrayControls = ReactArrayControls,
-  E extends HTMLElement = HTMLElement
-> implements AbstractRolsterArrayControl<T, C, E>
+export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
+  implements ReactArrayControl<E, T>
 {
   public readonly uuid: string;
+  public readonly state: T;
   public readonly focused: boolean;
   public readonly unfocused: boolean;
   public readonly disabled: boolean;
@@ -32,41 +28,31 @@ export class RolsterArrayControl<
   public readonly valid: boolean;
   public readonly invalid: boolean;
   public readonly wrong: boolean;
-  public readonly value: T;
   public readonly errors: ValidatorError<T>[];
   public readonly error?: ValidatorError<T>;
-  public readonly state?: FormState<T>;
   public readonly validators?: ValidatorFn<T>[];
 
-  private initialState?: FormState<T>;
-
-  group?: AbstractRolsterArrayGroup<C>;
   elementRef?: RefObject<E>;
 
-  constructor(props: AbtractFormArrayControlProps<T>) {
-    const {
-      uuid,
-      focused,
-      dirty,
-      disabled,
-      initialState,
-      state,
-      touched,
-      validators
-    } = props;
+  private initialState: T;
+  private subscriber?: ReactSubscriberControl<T>;
 
-    this.uuid = uuid;
-    this.focused = focused || false;
+  constructor(options: ReactArrayControlOptions<T>) {
+    this.initialState = options.initialState;
+    this.uuid = options.uuid;
+    this.focused = !!options.focused;
     this.unfocused = !this.focused;
-    this.touched = touched || false;
+    this.touched = !!options.touched;
     this.untouched = !this.touched;
-    this.dirty = dirty || false;
+    this.dirty = !!options.dirty;
     this.pristine = !this.dirty;
-    this.disabled = disabled || false;
+    this.disabled = !!options.disabled;
     this.enabled = !this.disabled;
+
+    const { state, validators } = options;
+
     this.state = state;
     this.validators = validators;
-    this.initialState = initialState;
 
     this.errors = validators ? controlIsValid({ state, validators }) : [];
 
@@ -74,7 +60,6 @@ export class RolsterArrayControl<
     this.valid = this.errors.length === 0;
     this.invalid = !this.valid;
     this.wrong = this.touched && this.invalid;
-    this.value = state as T;
   }
 
   public focus(): void {
@@ -113,7 +98,7 @@ export class RolsterArrayControl<
     }
   }
 
-  public setState(state?: FormState<T>): void {
+  public setState(state: T): void {
     this.update({ state });
   }
 
@@ -121,94 +106,107 @@ export class RolsterArrayControl<
     this.update({ validators });
   }
 
+  public subscribe(listener: ReactSubscriberControl<T>): void {
+    this.subscriber = listener;
+  }
+
   public reset(): void {
     this.update({ state: this.initialState });
   }
 
-  private update(changes: Partial<AbtractFormArrayControlProps<T>>): void {
-    this.group?.parent?.refreshControl(this, {
-      ...changes,
-      initialState: this.initialState
-    });
+  private update(changes: Partial<ReactArrayControlOptions<T>>): void {
+    if (this.subscriber) {
+      this.subscriber({
+        ...this,
+        ...changes,
+        initialState: this.initialState
+      });
+    }
   }
 }
 
-interface RolsterControlProps<T = any> extends FormArrayControlProps<T> {
+interface RolsterControlOptions<T = any>
+  extends Omit<FormArrayControlOptions<T>, 'uuid'> {
   touched?: boolean;
 }
 
-type ReactControlProps<T = any> = Omit<RolsterControlProps<T>, 'uuid'>;
-
-export function useFormArrayControl<
-  T = any,
-  C extends ReactArrayControls = any,
-  E extends HTMLElement = HTMLElement
->(): AbstractRolsterArrayControl<T, C, E>;
-export function useFormArrayControl<
-  T = any,
-  C extends ReactArrayControls = any,
-  E extends HTMLElement = HTMLElement
->(props: ReactControlProps<T>): AbstractRolsterArrayControl<T, C, E>;
-export function useFormArrayControl<
-  T = any,
-  C extends ReactArrayControls = any,
-  E extends HTMLElement = HTMLElement
->(
-  state: FormState<T>,
+function useArrayControl<E extends HTMLElement = HTMLElement, T = any>(
+  options?: RolsterControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
-): AbstractRolsterArrayControl<T, C, E>;
-export function useFormArrayControl<
-  T = any,
-  C extends ReactArrayControls = any,
-  E extends HTMLElement = HTMLElement
->(
-  controlProps?: ReactControlProps<T> | FormState<T>,
-  controlValidators?: ValidatorFn<T>[]
-): AbstractRolsterArrayControl<T, C, E> {
-  const props = createFormControlProps<T, ReactControlProps<T>>(
-    controlProps,
-    controlValidators
+): ReactArrayControl<E, T> {
+  const controlOptions = createFormControlOptions<T, RolsterControlOptions<T>>(
+    options,
+    validators
   );
 
   return new RolsterArrayControl({
-    ...props,
+    ...controlOptions,
     uuid: uuid(),
-    initialState: props.state
+    initialState: controlOptions.state
   });
 }
 
-export function useInputArrayControl<
-  T = any,
-  C extends ReactArrayControls = any
->(): AbstractRolsterArrayControl<T, C, HTMLInputElement>;
-export function useInputArrayControl<
-  T = any,
-  C extends ReactArrayControls = any
->(
-  props: ReactControlProps<T>
-): AbstractRolsterArrayControl<T, C, HTMLInputElement>;
-export function useInputArrayControl<
-  T = any,
-  C extends ReactArrayControls = any
->(
-  state: FormState<T>,
-  validators?: ValidatorFn<T>[]
-): AbstractRolsterArrayControl<T, C, HTMLInputElement>;
-export function useInputArrayControl<
-  T = any,
-  C extends ReactArrayControls = any
->(
-  controlProps?: ReactControlProps<T> | FormState<T>,
-  controlValidators?: ValidatorFn<T>[]
-): AbstractRolsterArrayControl<T, C, HTMLInputElement> {
-  const props = createFormControlProps<T, ReactControlProps<T>>(
-    controlProps,
-    controlValidators
-  );
+type ReactStateOptions<T> = Omit<RolsterControlOptions<T>, 'validators'>;
+type ReactValidatorsOptions<T> = Omit<RolsterControlOptions<T>, 'state'>;
 
-  return new RolsterArrayControl({
-    ...props,
-    uuid: uuid(),
-    initialState: props.state
-  });
+export function useReactArrayControl<
+  E extends HTMLElement,
+  T
+>(): ReactArrayControl<E, T | undefined>;
+export function useReactArrayControl<E extends HTMLElement, T>(
+  options: ReactStateOptions<T>
+): ReactArrayControl<E, T>;
+export function useReactArrayControl<E extends HTMLElement, T>(
+  options: ReactValidatorsOptions<T>
+): ReactArrayControl<E, T | undefined>;
+export function useReactArrayControl<E extends HTMLElement, T>(
+  state: T,
+  validators?: ValidatorFn<T>[]
+): ReactArrayControl<E, T>;
+export function useReactArrayControl<
+  E extends HTMLElement = HTMLElement,
+  T = any
+>(
+  options?: RolsterControlOptions<T> | T,
+  validators?: ValidatorFn<T>[]
+): ReactArrayControl<E, T> {
+  return useArrayControl(options, validators);
+}
+
+export function useFormArrayControl<T>(): ReactHtmlArrayControl<T | undefined>;
+export function useFormArrayControl<T>(
+  options: ReactStateOptions<T>
+): ReactHtmlArrayControl<T>;
+export function useFormArrayControl<T>(
+  options: ReactValidatorsOptions<T>
+): ReactHtmlArrayControl<T | undefined>;
+export function useFormArrayControl<T>(
+  state: T,
+  validators?: ValidatorFn<T>[]
+): ReactHtmlArrayControl<T>;
+export function useFormArrayControl<T = any>(
+  options?: RolsterControlOptions<T> | T,
+  validators?: ValidatorFn<T>[]
+): ReactHtmlArrayControl<T> {
+  return useArrayControl<HTMLElement>(options, validators);
+}
+
+export function useInputArrayControl<T>(): ReactInputArrayControl<
+  T | undefined
+>;
+export function useInputArrayControl<T>(
+  options: ReactStateOptions<T>
+): ReactInputArrayControl<T>;
+export function useInputArrayControl<T>(
+  options: ReactValidatorsOptions<T>
+): ReactInputArrayControl<T | undefined>;
+export function useInputArrayControl<T>(
+  state: T,
+  validators?: ValidatorFn<T>[]
+): ReactInputArrayControl<T>;
+export function useInputArrayControl<T = any>(
+  options?: RolsterControlOptions<T> | T,
+  validators?: ValidatorFn<T>[]
+): ReactInputArrayControl<T> {
+  return useArrayControl<HTMLInputElement>(options, validators);
 }
