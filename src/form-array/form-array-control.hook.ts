@@ -70,19 +70,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   public blur(): void {
     if (this.focused) {
-      this.update({ focused: false });
-    }
-  }
-
-  public touch(): void {
-    if (!this.touched) {
-      this.update({ touched: true });
-    }
-  }
-
-  public untouch(): void {
-    if (this.touched) {
-      this.update({ touched: false });
+      this.update({ focused: false, touched: true });
     }
   }
 
@@ -111,7 +99,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   }
 
   public reset(): void {
-    this.update({ state: this.initialState });
+    this.update({ state: this.initialState, dirty: false, touched: false });
   }
 
   private update(changes: Partial<ReactArrayControlOptions<T>>): void {

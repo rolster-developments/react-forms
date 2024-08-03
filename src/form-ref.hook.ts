@@ -15,9 +15,7 @@ type TextRefOptions = InputRefOptions<string>;
 type NumberRefOptions = InputRefOptions<number>;
 
 function useInputRefControl<T = any>(options: ReactRefOptions<T>) {
-  const { setValue, state, validators } = options;
-
-  const control = useInputControl(state, validators);
+  const control = useInputControl(options);
 
   useEffect(() => {
     const { elementRef } = control;
@@ -28,14 +26,10 @@ function useInputRefControl<T = any>(options: ReactRefOptions<T>) {
 
     elementRef?.current?.addEventListener('blur', () => {
       control.blur();
-
-      if (!control.touched) {
-        control.touch();
-      }
     });
 
     elementRef?.current?.addEventListener('change', ({ target }) => {
-      setValue(control, (target as HTMLInputElement).value);
+      options.setValue(control, (target as HTMLInputElement).value);
     });
   }, []);
 

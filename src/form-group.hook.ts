@@ -33,9 +33,9 @@ export function useFormGroup<C extends ReactControls>(
   const valid = errors.length === 0 && controlsAllChecked(controls, 'valid');
   const state = controlsToState(controls);
   const dirty = controlsPartialChecked(controls, 'dirty');
-  const dirties = controlsAllChecked(controls, 'dirty');
+  const dirtyAll = controlsAllChecked(controls, 'dirty');
   const touched = controlsPartialChecked(controls, 'touched');
-  const toucheds = controlsAllChecked(controls, 'touched');
+  const touchedAll = controlsAllChecked(controls, 'touched');
 
   function reset(): void {
     Object.values(controls).forEach((control) => {
@@ -46,19 +46,19 @@ export function useFormGroup<C extends ReactControls>(
   return {
     controls,
     dirty,
-    dirties,
+    dirtyAll,
     error: errors[0],
     errors,
     invalid: !valid,
     pristine: !dirty,
-    pristines: !dirties,
+    pristineAll: !dirtyAll,
     reset,
     setValidators,
     state,
     touched,
-    toucheds,
+    touchedAll,
     untouched: !touched,
-    untoucheds: !toucheds,
+    untouchedAll: !touchedAll,
     valid,
     wrong: touched && !valid
   };

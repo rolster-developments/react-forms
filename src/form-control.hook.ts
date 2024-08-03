@@ -47,7 +47,7 @@ function useControl<E extends HTMLElement, T = any>(
   }
 
   function blur(): void {
-    setControlState((state) => ({ ...state, focused: false }));
+    setControlState((state) => ({ ...state, focused: false, touched: true }));
   }
 
   function disable(): void {
@@ -56,14 +56,6 @@ function useControl<E extends HTMLElement, T = any>(
 
   function enable(): void {
     setControlState((state) => ({ ...state, disabled: false }));
-  }
-
-  function touch(): void {
-    setControlState((state) => ({ ...state, touched: true }));
-  }
-
-  function untouch(): void {
-    setControlState((state) => ({ ...state, touched: false }));
   }
 
   function setState(state: T): void {
@@ -102,9 +94,7 @@ function useControl<E extends HTMLElement, T = any>(
     reset,
     setState,
     setValidators,
-    touch,
     unfocused: !controlState.focused,
-    untouch,
     untouched: !controlState.touched,
     valid,
     wrong: controlState.touched && !valid

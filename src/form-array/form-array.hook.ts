@@ -25,6 +25,7 @@ interface ArrayState<
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 > {
   controls: C[];
+  disabled: boolean;
   groups: G[];
   state: ArrayStateGroup<C>[];
   validators?: ValidatorArrayFn<C, R>[];
@@ -68,6 +69,7 @@ export function useFormArray<
 
   const [arrayState, setArrayState] = useState<ArrayState<C, R, G>>({
     controls: groups.map(({ controls }) => controls),
+    disabled: false,
     groups,
     state: groups.map(({ controls }) => controlsToState(controls)),
     validators
@@ -96,10 +98,18 @@ export function useFormArray<
   const error = errors[0];
   const valid = errors.length === 0 && groupAllChecked(groups, 'valid');
 
-  const touched = groupPartialChecked(groups, 'touched');
-  const toucheds = groupAllChecked(groups, 'touched');
-  const dirties = groupAllChecked(groups, 'dirty');
   const dirty = groupPartialChecked(groups, 'dirty');
+  const dirtyAll = groupAllChecked(groups, 'dirty');
+  const touched = groupPartialChecked(groups, 'touched');
+  const touchedAll = groupAllChecked(groups, 'touched');
+
+  function disable(): void {
+    setArrayState((state) => ({ ...state, disabled: true }));
+  }
+
+  function enable(): void {
+    setArrayState((state) => ({ ...state, disabled: false }));
+  }
 
   function setGroups(groups: G[]): void {
     setArrayState((currentState) => ({
@@ -137,22 +147,25 @@ export function useFormArray<
   return {
     ...arrayState,
     dirty,
-    dirties,
+    dirtyAll,
+    disable,
+    enable,
+    enabled: !arrayState.disabled,
     error,
     errors,
     invalid: !valid,
     merge,
     pristine: !dirty,
-    pristines: !dirties,
+    pristineAll: !dirtyAll,
     push,
     remove,
     reset,
     set,
     setValidators,
     touched,
-    toucheds,
+    touchedAll,
     untouched: !touched,
-    untoucheds: !toucheds,
+    untouchedAll: !touchedAll,
     valid,
     wrong: touched && !valid
   };

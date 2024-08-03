@@ -29,15 +29,15 @@ export class RolsterArrayGroup<
   public readonly resource?: R;
   public readonly controls: C;
   public readonly dirty: boolean;
-  public readonly dirties: boolean;
+  public readonly dirtyAll: boolean;
   public readonly errors: ValidatorError<any>[];
   public readonly invalid: boolean;
   public readonly pristine: boolean;
-  public readonly pristines: boolean;
+  public readonly pristineAll: boolean;
   public readonly touched: boolean;
-  public readonly toucheds: boolean;
+  public readonly touchedAll: boolean;
   public readonly untouched: boolean;
-  public readonly untoucheds: boolean;
+  public readonly untouchedAll: boolean;
   public readonly valid: boolean;
   public readonly wrong: boolean;
   public readonly error?: ValidatorError<any>;
@@ -61,14 +61,14 @@ export class RolsterArrayGroup<
     this.invalid = !this.valid;
 
     this.dirty = controlsPartialChecked(controls, 'dirty');
-    this.dirties = controlsAllChecked(controls, 'dirty');
+    this.dirtyAll = controlsAllChecked(controls, 'dirty');
     this.touched = controlsPartialChecked(controls, 'touched');
-    this.toucheds = controlsAllChecked(controls, 'touched');
+    this.touchedAll = controlsAllChecked(controls, 'touched');
 
     this.untouched = !this.touched;
-    this.untoucheds = !this.toucheds;
+    this.untouchedAll = !this.touchedAll;
     this.pristine = !this.dirty;
-    this.pristines = !this.dirties;
+    this.pristineAll = !this.dirtyAll;
 
     this.wrong = this.touched && this.invalid;
 
