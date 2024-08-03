@@ -86,6 +86,12 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
     }
   }
 
+  public touch(): void {
+    if (this.touched) {
+      this.update({ touched: true });
+    }
+  }
+
   public setState(state: T): void {
     this.update({ state });
   }

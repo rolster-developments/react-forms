@@ -58,6 +58,10 @@ function useControl<E extends HTMLElement, T = any>(
     setControlState((state) => ({ ...state, disabled: false }));
   }
 
+  function touch(): void {
+    setControlState((state) => ({ ...state, touched: true }));
+  }
+
   function setState(state: T): void {
     setControlState((currentState) => ({
       ...currentState,
@@ -94,6 +98,7 @@ function useControl<E extends HTMLElement, T = any>(
     reset,
     setState,
     setValidators,
+    touch,
     unfocused: !controlState.focused,
     untouched: !controlState.touched,
     valid,
