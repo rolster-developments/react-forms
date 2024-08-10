@@ -3,7 +3,7 @@ import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
   controlsAllChecked,
   controlsPartialChecked,
-  controlsToState,
+  controlsToValue,
   groupIsValid
 } from '@rolster/forms/helpers';
 import { useState } from 'react';
@@ -31,7 +31,7 @@ export function useFormGroup<C extends ReactControls>(
 
   const errors = validators ? groupIsValid({ controls, validators }) : [];
   const valid = errors.length === 0 && controlsAllChecked(controls, 'valid');
-  const state = controlsToState(controls);
+  const value = controlsToValue(controls);
   const dirty = controlsPartialChecked(controls, 'dirty');
   const dirtyAll = controlsAllChecked(controls, 'dirty');
   const touched = controlsPartialChecked(controls, 'touched');
@@ -54,12 +54,12 @@ export function useFormGroup<C extends ReactControls>(
     pristineAll: !dirtyAll,
     reset,
     setValidators,
-    state,
     touched,
     touchedAll,
     untouched: !touched,
     untouchedAll: !touchedAll,
     valid,
+    value,
     wrong: touched && !valid
   };
 }

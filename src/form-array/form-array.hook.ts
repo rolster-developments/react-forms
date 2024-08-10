@@ -6,7 +6,7 @@ import {
 import { createFormArrayOptions } from '@rolster/forms/arguments';
 import {
   arrayIsValid,
-  controlsToState,
+  controlsToValue,
   groupAllChecked,
   groupPartialChecked
 } from '@rolster/forms/helpers';
@@ -27,7 +27,7 @@ interface ArrayState<
   controls: C[];
   disabled: boolean;
   groups: G[];
-  state: ArrayStateGroup<C>[];
+  value: ArrayStateGroup<C>[];
   validators?: ValidatorArrayFn<C, R>[];
 }
 
@@ -67,11 +67,11 @@ export function useFormArray<
   const { validators } = arrayOptions;
   const groups = arrayOptions.groups || [];
 
-  const [arrayState, setArrayState] = useState<ArrayState<C, R, G>>({
+  const [state, setState] = useState<ArrayState<C, R, G>>({
     controls: groups.map(({ controls }) => controls),
     disabled: false,
     groups,
-    state: groups.map(({ controls }) => controlsToState(controls)),
+    value: groups.map(({ controls }) => controlsToValue(controls)),
     validators
   });
 
@@ -79,9 +79,9 @@ export function useFormArray<
 
   useEffect(() => {
     const subscriber: ReactSubscriberGroup<C, R> = (options) => {
-      setArrayState((state) => ({
+      setState((state) => ({
         ...state,
-        groups: arrayState.groups.map((group) =>
+        groups: state.groups.map((group) =>
           group.uuid === options.uuid
             ? new RolsterArrayGroup<C, R>(options)
             : group
@@ -89,10 +89,10 @@ export function useFormArray<
       }));
     };
 
-    arrayState.groups.forEach((group) => {
+    state.groups.forEach((group) => {
       group.subscribe(subscriber);
     });
-  }, [arrayState]);
+  }, [state]);
 
   const errors = validators ? arrayIsValid({ groups, validators }) : [];
   const error = errors[0];
@@ -104,28 +104,28 @@ export function useFormArray<
   const touchedAll = groupAllChecked(groups, 'touched');
 
   function disable(): void {
-    setArrayState((state) => ({ ...state, disabled: true }));
+    setState((state) => ({ ...state, disabled: true }));
   }
 
   function enable(): void {
-    setArrayState((state) => ({ ...state, disabled: false }));
+    setState((state) => ({ ...state, disabled: false }));
   }
 
   function setGroups(groups: G[]): void {
-    setArrayState((currentState) => ({
+    setState((currentState) => ({
       ...currentState,
       groups,
       controls: groups.map(({ controls }) => controls),
-      state: groups.map(({ controls }) => controlsToState(controls))
+      value: groups.map(({ controls }) => controlsToValue(controls))
     }));
   }
 
   function push(group: G): void {
-    setGroups([...arrayState.groups, group]);
+    setGroups([...state.groups, group]);
   }
 
   function merge(groups: G[]): void {
-    setGroups([...arrayState.groups, ...groups]);
+    setGroups([...state.groups, ...groups]);
   }
 
   function set(groups: G[]): void {
@@ -133,7 +133,7 @@ export function useFormArray<
   }
 
   function remove({ uuid }: G): void {
-    setGroups(arrayState.groups.filter((group) => group.uuid !== uuid));
+    setGroups(state.groups.filter((group) => group.uuid !== uuid));
   }
 
   function reset(): void {
@@ -141,16 +141,16 @@ export function useFormArray<
   }
 
   function setValidators(validators?: ValidatorArrayFn<C, R>[]): void {
-    setArrayState((state) => ({ ...state, validators }));
+    setState((state) => ({ ...state, validators }));
   }
 
   return {
-    ...arrayState,
+    ...state,
     dirty,
     dirtyAll,
     disable,
     enable,
-    enabled: !arrayState.disabled,
+    enabled: !state.disabled,
     error,
     errors,
     invalid: !valid,

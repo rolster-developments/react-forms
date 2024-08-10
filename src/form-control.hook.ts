@@ -13,7 +13,7 @@ interface ControlState<T = any> {
   dirty: boolean;
   disabled: boolean;
   focused: boolean;
-  state: T;
+  value: T;
   touched: boolean;
   validators?: ValidatorFn<T>[];
 }
@@ -22,92 +22,93 @@ function useControl<E extends HTMLElement, T = any>(
   controlOptions?: ReactControlOptions<T> | T,
   controlValidators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T> {
-  const { state, touched, validators } = createFormControlOptions<
+  const { value, touched, validators } = createFormControlOptions<
     T,
     ReactControlOptions<T>
   >(controlOptions, controlValidators);
 
-  const [controlState, setControlState] = useState<ControlState<T>>({
+  const [state, setState] = useState<ControlState<T>>({
     dirty: false,
     disabled: false,
     focused: false,
-    state: state,
     touched: !!touched,
-    validators: validators
+    validators,
+    value
   });
 
-  const initialState = useRef<T>(state);
+  const initialValue = useRef<T>(value);
   const elementRef = useRef<E>(null);
 
-  const errors = validators ? controlIsValid({ state, validators }) : [];
+  const errors = state.validators
+    ? controlIsValid({
+        value: state.value,
+        validators: state.validators
+      })
+    : [];
   const valid = errors.length === 0;
 
   function focus(): void {
-    setControlState((state) => ({ ...state, focused: true }));
+    setState((state) => ({ ...state, focused: true }));
   }
 
   function blur(): void {
-    setControlState((state) => ({ ...state, focused: false, touched: true }));
+    setState((state) => ({ ...state, focused: false, touched: true }));
   }
 
   function disable(): void {
-    setControlState((state) => ({ ...state, disabled: true }));
+    setState((state) => ({ ...state, disabled: true }));
   }
 
   function enable(): void {
-    setControlState((state) => ({ ...state, disabled: false }));
+    setState((state) => ({ ...state, disabled: false }));
   }
 
   function touch(): void {
-    setControlState((state) => ({ ...state, touched: true }));
+    setState((state) => ({ ...state, touched: true }));
   }
 
-  function setState(state: T): void {
-    setControlState((currentState) => ({
-      ...currentState,
-      dirty: true,
-      state
-    }));
+  function setValue(value: T): void {
+    setState((state) => ({ ...state, dirty: true, value }));
   }
 
   function setValidators(validators?: ValidatorFn<T>[]): void {
-    setControlState((state) => ({ ...state, validators }));
+    setState((state) => ({ ...state, validators }));
   }
 
   function reset(): void {
-    setControlState((currentState) => ({
-      ...currentState,
+    setState((state) => ({
+      ...state,
       dirty: false,
-      state: initialState.current,
+      value: initialValue.current,
       touched: false
     }));
   }
 
   return {
-    ...controlState,
+    ...state,
     blur,
     disable,
     elementRef,
     enable,
-    enabled: !controlState.disabled,
+    enabled: !state.disabled,
     error: errors[0],
     errors,
     focus,
     invalid: !valid,
-    pristine: !controlState.dirty,
+    pristine: !state.dirty,
     reset,
-    setState,
     setValidators,
+    setValue,
     touch,
-    unfocused: !controlState.focused,
-    untouched: !controlState.touched,
+    unfocused: !state.focused,
+    untouched: !state.touched,
     valid,
-    wrong: controlState.touched && !valid
+    wrong: state.touched && !valid
   };
 }
 
 type ReactStateOptions<T> = Omit<ReactControlOptions<T>, 'validators'>;
-type ReactValidatorsOptions<T> = Omit<ReactControlOptions<T>, 'state'>;
+type ReactValidatorsOptions<T> = Omit<ReactControlOptions<T>, 'value'>;
 
 export function useReactControl<E extends HTMLElement, T>(): ReactFormControl<
   E,
@@ -120,7 +121,7 @@ export function useReactControl<E extends HTMLElement, T>(
   options: ReactValidatorsOptions<T>
 ): ReactFormControl<E, T | undefined>;
 export function useReactControl<E extends HTMLElement, T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T>(
@@ -138,7 +139,7 @@ export function useFormControl<T>(
   options: ReactValidatorsOptions<T>
 ): ReactHtmlControl<T | undefined>;
 export function useFormControl<T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T>;
 export function useFormControl<T>(
@@ -156,7 +157,7 @@ export function useInputControl<T>(
   options: ReactValidatorsOptions<T>
 ): ReactInputControl<T | undefined>;
 export function useInputControl<T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactInputControl<T>;
 export function useInputControl<T>(

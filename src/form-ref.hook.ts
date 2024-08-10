@@ -54,7 +54,7 @@ export function useTextRefControl(
       validators
     ),
     setValue: (control, value) => {
-      control.setState(value);
+      control.setValue(value);
     }
   });
 }
@@ -77,7 +77,7 @@ export function useNumberRefControl(
       validators
     ),
     setValue: (control, value) => {
-      control.setState(+value);
+      control.setValue(+value);
     }
   });
 }

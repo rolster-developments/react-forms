@@ -28,7 +28,7 @@ export type ReactGroup<C extends ReactControls = ReactControls> =
 
 export interface ReactArrayControlOptions<T = any>
   extends FormArrayControlOptions<T> {
-  initialState: T;
+  initialValue: T;
   dirty?: boolean;
   disabled?: boolean;
   focused?: boolean;

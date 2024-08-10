@@ -7,7 +7,7 @@ import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
   controlsAllChecked,
   controlsPartialChecked,
-  controlsToState,
+  controlsToValue,
   groupIsValid
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
@@ -26,8 +26,8 @@ export class RolsterArrayGroup<
 > implements ReactArrayGroup<C, R>
 {
   public readonly uuid: string;
-  public readonly resource?: R;
   public readonly controls: C;
+  public readonly value: ArrayStateGroup<C>;
   public readonly dirty: boolean;
   public readonly dirtyAll: boolean;
   public readonly errors: ValidatorError<any>[];
@@ -42,7 +42,7 @@ export class RolsterArrayGroup<
   public readonly wrong: boolean;
   public readonly error?: ValidatorError<any>;
   public readonly validators?: ValidatorGroupFn<C>[];
-  public readonly state: ArrayStateGroup<C>;
+  public readonly resource?: R;
 
   private subscriber?: ReactSubscriberGroup<C, R>;
 
@@ -72,7 +72,7 @@ export class RolsterArrayGroup<
 
     this.wrong = this.touched && this.invalid;
 
-    this.state = controlsToState(controls);
+    this.value = controlsToValue(controls);
 
     const subscriber: ReactSubscriberControl = (options) => {
       this.update({

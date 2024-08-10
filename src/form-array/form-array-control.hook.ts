@@ -16,7 +16,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   implements ReactArrayControl<E, T>
 {
   public readonly uuid: string;
-  public readonly state: T;
+  public readonly value: T;
   public readonly focused: boolean;
   public readonly unfocused: boolean;
   public readonly disabled: boolean;
@@ -34,11 +34,11 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   elementRef?: RefObject<E>;
 
-  private initialState: T;
+  private initialValue: T;
   private subscriber?: ReactSubscriberControl<T>;
 
   constructor(options: ReactArrayControlOptions<T>) {
-    this.initialState = options.initialState;
+    this.initialValue = options.initialValue;
     this.uuid = options.uuid;
     this.focused = !!options.focused;
     this.unfocused = !this.focused;
@@ -49,12 +49,12 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
     this.disabled = !!options.disabled;
     this.enabled = !this.disabled;
 
-    const { state, validators } = options;
+    const { value, validators } = options;
 
-    this.state = state;
+    this.value = value;
     this.validators = validators;
 
-    this.errors = validators ? controlIsValid({ state, validators }) : [];
+    this.errors = validators ? controlIsValid({ value, validators }) : [];
 
     this.error = this.errors[0];
     this.valid = this.errors.length === 0;
@@ -92,8 +92,8 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
     }
   }
 
-  public setState(state: T): void {
-    this.update({ state });
+  public setValue(value: T): void {
+    this.update({ value });
   }
 
   public setValidators(validators?: ValidatorFn<T>[]): void {
@@ -105,7 +105,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   }
 
   public reset(): void {
-    this.update({ state: this.initialState, dirty: false, touched: false });
+    this.update({ value: this.initialValue, dirty: false, touched: false });
   }
 
   private update(changes: Partial<ReactArrayControlOptions<T>>): void {
@@ -113,7 +113,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
       this.subscriber({
         ...this,
         ...changes,
-        initialState: this.initialState
+        initialValue: this.initialValue
       });
     }
   }
@@ -136,7 +136,7 @@ function useArrayControl<E extends HTMLElement = HTMLElement, T = any>(
   return new RolsterArrayControl({
     ...controlOptions,
     uuid: uuid(),
-    initialState: controlOptions.state
+    initialValue: controlOptions.value
   });
 }
 
@@ -154,7 +154,7 @@ export function useReactArrayControl<E extends HTMLElement, T>(
   options: ReactValidatorsOptions<T>
 ): ReactArrayControl<E, T | undefined>;
 export function useReactArrayControl<E extends HTMLElement, T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactArrayControl<E, T>;
 export function useReactArrayControl<
@@ -175,7 +175,7 @@ export function useFormArrayControl<T>(
   options: ReactValidatorsOptions<T>
 ): ReactHtmlArrayControl<T | undefined>;
 export function useFormArrayControl<T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactHtmlArrayControl<T>;
 export function useFormArrayControl<T = any>(
@@ -195,7 +195,7 @@ export function useInputArrayControl<T>(
   options: ReactValidatorsOptions<T>
 ): ReactInputArrayControl<T | undefined>;
 export function useInputArrayControl<T>(
-  state: T,
+  value: T,
   validators?: ValidatorFn<T>[]
 ): ReactInputArrayControl<T>;
 export function useInputArrayControl<T = any>(
