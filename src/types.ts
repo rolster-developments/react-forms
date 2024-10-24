@@ -17,8 +17,21 @@ export interface ReactFormControl<E extends HTMLElement = HTMLElement, T = any>
   elementRef?: RefObject<E>;
 }
 
+export type ReactFormControlEmpty<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> = ReactFormControl<E, T | undefined>;
+
 export type ReactHtmlControl<T = any> = ReactFormControl<HTMLElement, T>;
+export type ReactHtmlControlEmpty<T = any> = ReactFormControlEmpty<
+  HTMLElement,
+  T
+>;
 export type ReactInputControl<T = any> = ReactFormControl<HTMLInputElement, T>;
+export type ReactInputControlEmpty<T = any> = ReactFormControlEmpty<
+  HTMLInputElement,
+  T
+>;
 
 export type ReactControls<T extends ReactFormControl = ReactFormControl> =
   AbstractControls<T>;
@@ -46,8 +59,21 @@ export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   validators?: ValidatorFn<T>[];
 }
 
+export type ReactArrayControlEmpty<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> = ReactArrayControl<E, T | undefined>;
+
 export type ReactHtmlArrayControl<T = any> = ReactArrayControl<HTMLElement, T>;
+export type ReactHtmlArrayControlEmpty<T = any> = ReactArrayControlEmpty<
+  HTMLElement,
+  T
+>;
 export type ReactInputArrayControl<T = any> = ReactArrayControl<
+  HTMLInputElement,
+  T
+>;
+export type ReactInputArrayControlEmpty<T = any> = ReactArrayControlEmpty<
   HTMLInputElement,
   T
 >;
