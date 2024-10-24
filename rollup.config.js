@@ -5,6 +5,7 @@ export default rolster({
   entryFiles: ['index'],
   packages: [
     '@rolster/forms',
+    '@rolster/forms/arguments',
     '@rolster/forms/helpers',
     '@rolster/validators',
     'react',
