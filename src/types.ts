@@ -3,6 +3,7 @@ import {
   AbstractArrayControl,
   AbstractArrayControls,
   AbstractArrayGroup,
+  AbstractControl,
   AbstractControls,
   AbstractFormControl,
   AbstractFormGroup,
@@ -11,6 +12,11 @@ import {
 } from '@rolster/forms';
 import { ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
+
+interface ReactAbstractControl<E extends HTMLElement = HTMLElement, T = any>
+  extends AbstractControl<T> {
+  elementRef?: RefObject<E>;
+}
 
 export interface ReactFormControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractFormControl<T> {
@@ -32,12 +38,6 @@ export type ReactInputControlEmpty<T = any> = ReactFormControlEmpty<
   HTMLInputElement,
   T
 >;
-
-export type ReactControls<T extends ReactFormControl = ReactFormControl> =
-  AbstractControls<T>;
-
-export type ReactGroup<C extends ReactControls = ReactControls> =
-  AbstractFormGroup<C>;
 
 export interface ReactArrayControlOptions<T = any>
   extends FormArrayControlOptions<T> {
@@ -92,12 +92,21 @@ export interface ReactArrayGroup<C extends ReactArrayControls, R = any>
   subscribe: (subscriber: ReactSubscriberGroup<C, R>) => void;
 }
 
-export type ReactFormArray<
+export interface ReactFormArray<
   C extends ReactArrayControls = ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
-> = AbstractArray<C, R, G>;
+> extends AbstractArray<C, R, G> {
+  elementRef?: RefObject<HTMLElement>;
+}
 
 export type ReactControl<E extends HTMLElement = HTMLElement, T = any> =
   | ReactFormControl<E, T>
   | ReactArrayControl<E, T>;
+
+export type ReactControls<
+  T extends ReactAbstractControl = ReactAbstractControl
+> = AbstractControls<T>;
+
+export type ReactGroup<C extends ReactControls = ReactControls> =
+  AbstractFormGroup<C>;
