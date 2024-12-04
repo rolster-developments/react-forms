@@ -71,7 +71,6 @@ export class RolsterArrayGroup<
     this.pristineAll = !this.dirtyAll;
 
     this.wrong = this.touched && this.invalid;
-
     this.value = controlsToValue(controls);
 
     const subscriber: ReactSubscriberControl = (options) => {
@@ -99,14 +98,12 @@ export class RolsterArrayGroup<
     this.update({ validators });
   }
 
-  public subscribe(listener: ReactSubscriberGroup<C, R>): void {
-    this.subscriber = listener;
+  public subscribe(subscriber: ReactSubscriberGroup<C, R>): void {
+    this.subscriber = subscriber;
   }
 
   private update(changes: Partial<ReactSubscriberGroup<C, R>>): void {
-    if (this.subscriber) {
-      this.subscriber({ ...this, ...changes });
-    }
+    this.subscriber && this.subscriber({ ...this, ...changes });
   }
 }
 
@@ -115,15 +112,15 @@ type RolsterGroupOptions<
   R = any
 > = Omit<FormArrayGroupOptions<C, R>, 'uuid'>;
 
-export function useFormArrayGroup<
+export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 >(options: RolsterGroupOptions<C, R>): ReactArrayGroup<C, R>;
-export function useFormArrayGroup<
+export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 >(controls: C, validators?: ValidatorGroupFn<C, R>[]): ReactArrayGroup<C, R>;
-export function useFormArrayGroup<
+export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 >(

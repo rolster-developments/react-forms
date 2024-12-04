@@ -1,9 +1,9 @@
 export {
-  useFormArray,
-  useFormArrayControl,
-  useFormArrayGroup,
-  useInputArrayControl,
-  useReactArrayControl
+  formArrayControl,
+  formArrayGroup,
+  inputArrayControl,
+  reactArrayControl,
+  useFormArray
 } from './form-array';
 export {
   useFormControl,

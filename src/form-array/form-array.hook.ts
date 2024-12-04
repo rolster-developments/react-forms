@@ -64,37 +64,20 @@ export function useFormArray<
     FormArrayOptions<C, R, G>
   >(options, arrayValidators);
 
-  const { validators } = arrayOptions;
   const groups = arrayOptions.groups || [];
+  const currentState = useRef(groups);
 
   const [state, setState] = useState<ArrayState<C, R, G>>({
     controls: groups.map(({ controls }) => controls),
     disabled: false,
     groups,
     value: groups.map(({ controls }) => controlsToValue(controls)),
-    validators
+    validators: arrayOptions.validators
   });
 
-  const currentState = useRef(groups);
-
-  useEffect(() => {
-    const subscriber: ReactSubscriberGroup<C, R> = (options) => {
-      setState((state) => ({
-        ...state,
-        groups: state.groups.map((group) =>
-          group.uuid === options.uuid
-            ? new RolsterArrayGroup<C, R>(options)
-            : group
-        ) as G[]
-      }));
-    };
-
-    state.groups.forEach((group) => {
-      group.subscribe(subscriber);
-    });
-  }, [state]);
-
-  const errors = validators ? arrayIsValid({ groups, validators }) : [];
+  const errors = state.validators
+    ? arrayIsValid({ groups, validators: state.validators })
+    : [];
   const error = errors[0];
   const valid = errors.length === 0 && groupAllChecked(groups, 'valid');
 
@@ -102,6 +85,22 @@ export function useFormArray<
   const dirtyAll = groupAllChecked(groups, 'dirty');
   const touched = groupPartialChecked(groups, 'touched');
   const touchedAll = groupAllChecked(groups, 'touched');
+
+  useEffect(() => {
+    const subscriber: ReactSubscriberGroup<C, R> = (options) => {
+      setGroups(
+        state.groups.map((group) =>
+          group.uuid === options.uuid
+            ? new RolsterArrayGroup<C, R>(options)
+            : group
+        ) as G[]
+      );
+    };
+
+    state.groups.forEach((group) => {
+      group.subscribe(subscriber);
+    });
+  }, [state.groups]);
 
   function disable(): void {
     setState((state) => ({ ...state, disabled: true }));
