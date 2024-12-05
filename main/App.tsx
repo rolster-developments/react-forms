@@ -10,6 +10,7 @@ import {
   useFormGroup
 } from '../src';
 import './index.css';
+import { required } from '@rolster/validators/helpers';
 
 interface PersonArrayControls extends ReactArrayControls {
   name: ReactInputArrayControl<string>;
@@ -29,14 +30,14 @@ export function App() {
   });
 
   function onLog(): void {
-    console.log(employees.value);
+    console.log(employees.invalid);
   }
 
   function onNewPerson(): void {
     employees.controls.persons.push(
       formArrayGroup({
-        name: inputArrayControl(''),
-        occupation: inputArrayControl(''),
+        name: inputArrayControl<string>('', [required]),
+        occupation: inputArrayControl<string>('', [required]),
         salary: inputArrayControl(0)
       })
     );
@@ -66,7 +67,7 @@ export function App() {
                 );
               }}
             />
-            
+
             <input
               value={person.controls.salary.value}
               onInput={(event) => {
@@ -75,9 +76,13 @@ export function App() {
                 );
               }}
             />
+
+            {person.invalid && <label>Error in data</label>}
           </div>
         ))}
       </div>
+
+      {employees.valid && <label>Todo esta Perfecto</label>}
 
       <div className="actions">
         <button onClick={onLog}>Log</button>

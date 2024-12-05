@@ -79,12 +79,12 @@ export function useFormArray<
     ? arrayIsValid({ groups, validators: state.validators })
     : [];
   const error = errors[0];
-  const valid = errors.length === 0 && groupAllChecked(groups, 'valid');
+  const valid = errors.length === 0 && groupAllChecked(state.groups, 'valid');
 
-  const dirty = groupPartialChecked(groups, 'dirty');
-  const dirtyAll = groupAllChecked(groups, 'dirty');
-  const touched = groupPartialChecked(groups, 'touched');
-  const touchedAll = groupAllChecked(groups, 'touched');
+  const dirty = groupPartialChecked(state.groups, 'dirty');
+  const dirtyAll = groupAllChecked(state.groups, 'dirty');
+  const touched = groupPartialChecked(state.groups, 'touched');
+  const touchedAll = groupAllChecked(state.groups, 'touched');
 
   useEffect(() => {
     const subscriber: ReactSubscriberGroup<C, R> = (options) => {
