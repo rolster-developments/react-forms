@@ -121,6 +121,13 @@ export function useReactControl<E extends HTMLElement, T>(
   options: ReactValidatorsOptions<T>
 ): ReactFormControl<E, T | undefined>;
 export function useReactControl<E extends HTMLElement, T>(
+  options: ReactControlOptions<T>
+): ReactFormControl<E, T>;
+export function useReactControl<E extends HTMLElement, T>(
+  value: undefined,
+  validators?: ValidatorFn<T>[]
+): ReactFormControl<E, T | undefined>;
+export function useReactControl<E extends HTMLElement, T>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T>;
@@ -139,6 +146,13 @@ export function useFormControl<T>(
   options: ReactValidatorsOptions<T>
 ): ReactHtmlControl<T | undefined>;
 export function useFormControl<T>(
+  options: ReactControlOptions<T>
+): ReactHtmlControl<T>;
+export function useFormControl<T>(
+  value: undefined,
+  validators?: ValidatorFn<T>[]
+): ReactHtmlControl<T | undefined>;
+export function useFormControl<T>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T>;
@@ -155,6 +169,13 @@ export function useInputControl<T>(
 ): ReactInputControl<T>;
 export function useInputControl<T>(
   options: ReactValidatorsOptions<T>
+): ReactInputControl<T | undefined>;
+export function useInputControl<T>(
+  options: ReactControlOptions<T>
+): ReactInputControl<T>;
+export function useInputControl<T>(
+  value: undefined,
+  validators?: ValidatorFn<T>[]
 ): ReactInputControl<T | undefined>;
 export function useInputControl<T>(
   value: T,
