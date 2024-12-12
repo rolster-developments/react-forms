@@ -121,7 +121,7 @@ function useControl<E extends HTMLElement, T = any>(
   };
 }
 
-type ReactStateOptions<T> = Omit<ReactControlOptions<T>, 'validators'>;
+type ReactValueOptions<T> = Omit<ReactControlOptions<T>, 'validators'>;
 type ReactValidatorsOptions<T> = Omit<ReactControlOptions<T>, 'value'>;
 
 export function useReactControl<E extends HTMLElement, T>(): ReactFormControl<
@@ -129,7 +129,7 @@ export function useReactControl<E extends HTMLElement, T>(): ReactFormControl<
   T | undefined
 >;
 export function useReactControl<E extends HTMLElement, T>(
-  options: ReactStateOptions<T>
+  options: ReactValueOptions<T>
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T>(
   options: ReactValidatorsOptions<T>
@@ -154,7 +154,7 @@ export function useReactControl<E extends HTMLElement, T>(
 
 export function useFormControl<T>(): ReactHtmlControl<T | undefined>;
 export function useFormControl<T>(
-  options: ReactStateOptions<T>
+  options: ReactValueOptions<T>
 ): ReactHtmlControl<T>;
 export function useFormControl<T>(
   options: ReactValidatorsOptions<T>
@@ -179,7 +179,7 @@ export function useFormControl<T>(
 
 export function useInputControl<T>(): ReactInputControl<T | undefined>;
 export function useInputControl<T>(
-  options: ReactStateOptions<T>
+  options: ReactValueOptions<T>
 ): ReactInputControl<T>;
 export function useInputControl<T>(
   options: ReactValidatorsOptions<T>
