@@ -8,7 +8,9 @@ import {
   arrayIsValid,
   controlsToValue,
   groupAllChecked,
-  groupPartialChecked
+  groupPartialChecked,
+  hasError as rolsterHasError,
+  someErrors as rolsterSomeErrors
 } from '@rolster/forms/helpers';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -135,6 +137,14 @@ export function useFormArray<
     setGroups(state.groups.filter((group) => group.uuid !== uuid));
   }
 
+  function hasError(key: string): boolean {
+    return rolsterHasError(errors, key);
+  }
+
+  function someErrors(keys: string[]): boolean {
+    return rolsterSomeErrors(errors, keys);
+  }
+
   function reset(): void {
     setGroups(currentState.current);
   }
@@ -152,6 +162,7 @@ export function useFormArray<
     enabled: !state.disabled,
     error,
     errors,
+    hasError,
     invalid: !valid,
     merge,
     pristine: !dirty,
@@ -161,6 +172,7 @@ export function useFormArray<
     reset,
     set,
     setValidators,
+    someErrors,
     touched,
     touchedAll,
     untouched: !touched,

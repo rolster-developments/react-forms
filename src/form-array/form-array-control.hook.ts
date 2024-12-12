@@ -1,6 +1,6 @@
 import { FormArrayControlOptions } from '@rolster/forms';
 import { createFormControlOptions } from '@rolster/forms/arguments';
-import { controlIsValid } from '@rolster/forms/helpers';
+import { controlIsValid, hasError, someErrors } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -92,6 +92,14 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   public subscribe(listener: ReactSubscriberControl<T>): void {
     this.subscriber = listener;
+  }
+
+  public hasError(key: string): boolean {
+    return hasError(this.errors, key);
+  }
+
+  public someErrors(keys: string[]): boolean {
+    return someErrors(this.errors, keys);
   }
 
   public reset(): void {

@@ -1,6 +1,10 @@
 import { FormControlOptions } from '@rolster/forms';
 import { createFormControlOptions } from '@rolster/forms/arguments';
-import { controlIsValid } from '@rolster/forms/helpers';
+import {
+  controlIsValid,
+  hasError as rolsterHasError,
+  someErrors as rolsterSomeErrors
+} from '@rolster/forms/helpers';
 import { ValidatorFn } from '@rolster/validators';
 import { useRef, useState } from 'react';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
@@ -75,6 +79,14 @@ function useControl<E extends HTMLElement, T = any>(
     setState((state) => ({ ...state, validators }));
   }
 
+  function hasError(key: string): boolean {
+    return rolsterHasError(errors, key);
+  }
+
+  function someErrors(keys: string[]): boolean {
+    return rolsterSomeErrors(errors, keys);
+  }
+
   function reset(): void {
     setState((state) => ({
       ...state,
@@ -94,11 +106,13 @@ function useControl<E extends HTMLElement, T = any>(
     error: errors[0],
     errors,
     focus,
+    hasError,
     invalid: !valid,
     pristine: !state.dirty,
     reset,
     setValidators,
     setValue,
+    someErrors,
     touch,
     unfocused: !state.focused,
     untouched: !state.touched,
