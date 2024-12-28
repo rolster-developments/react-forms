@@ -3,10 +3,13 @@ import {
   AbstractArrayControl,
   AbstractArrayControls,
   AbstractArrayGroup,
+  AbstractArrayList,
   AbstractControl,
   AbstractControls,
   AbstractFormControl,
   AbstractFormGroup,
+  ArrayControlsValue,
+  ArrayListValueToControls,
   FormArrayControlOptions,
   FormArrayGroupOptions
 } from '@rolster/forms';
@@ -46,8 +49,15 @@ export type ReactSubscriberControl<T = any> = (
   options: ReactArrayControlOptions<T>
 ) => void;
 
+export interface ReactArrayListOptions<
+  C extends ReactArrayControls = ReactArrayControls
+> extends ReactArrayControlOptions<ArrayControlsValue<C>[]> {
+  valueToControls: ArrayListValueToControls<C>;
+}
+
 export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractArrayControl<T> {
+  clone(options: ReactArrayControlOptions<T>): ReactArrayControl<E, T>;
   subscribe: (subscriber: ReactSubscriberControl<T>) => void;
   elementRef?: RefObject<E>;
   validators?: ValidatorFn<T>[];
@@ -69,6 +79,11 @@ export type ReactInputArrayVoid<T = any> = ReactArrayVoid<HTMLInputElement, T>;
 export type ReactArrayControls<
   T extends ReactArrayControl = ReactArrayControl
 > = AbstractArrayControls<T>;
+
+export interface ReactArrayList<
+  C extends ReactArrayControls = ReactArrayControls
+> extends ReactArrayControl<HTMLElement, ArrayControlsValue<C>[]>,
+    AbstractArrayList<C> {}
 
 export type ReactSubscriberGroup<
   C extends ReactArrayControls = ReactArrayControls,

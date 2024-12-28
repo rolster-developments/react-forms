@@ -1,6 +1,7 @@
 export {
   formArrayControl,
   formArrayGroup,
+  formArrayList,
   inputArrayControl,
   reactArrayControl,
   useFormArray
@@ -9,6 +10,6 @@ export {
   useFormControl,
   useInputControl,
   useReactControl
-} from './form-control.hook';
-export { useFormGroup } from './form-group.hook';
+} from './form-control';
+export { useFormGroup } from './form-group';
 export * from './types';

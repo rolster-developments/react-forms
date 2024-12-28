@@ -1,5 +1,5 @@
 import {
-  ArrayStateGroup,
+  ArrayControlsValue,
   FormArrayOptions,
   ValidatorArrayFn
 } from '@rolster/forms';
@@ -19,7 +19,7 @@ import {
   ReactFormArray,
   ReactSubscriberGroup
 } from '../types';
-import { RolsterArrayGroup } from './form-array-group.hook';
+import { RolsterArrayGroup } from './form-array-group';
 
 interface ArrayState<
   C extends ReactArrayControls,
@@ -29,7 +29,7 @@ interface ArrayState<
   controls: C[];
   disabled: boolean;
   groups: G[];
-  value: ArrayStateGroup<C>[];
+  value: ArrayControlsValue<C>[];
   validators?: ValidatorArrayFn<C, R>[];
 }
 

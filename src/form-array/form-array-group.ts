@@ -1,5 +1,5 @@
 import {
-  ArrayStateGroup,
+  ControlsValue,
   FormArrayGroupOptions,
   ValidatorGroupFn
 } from '@rolster/forms';
@@ -18,7 +18,6 @@ import {
   ReactSubscriberControl,
   ReactSubscriberGroup
 } from '../types';
-import { RolsterArrayControl } from './form-array-control.hook';
 
 export class RolsterArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
@@ -27,7 +26,7 @@ export class RolsterArrayGroup<
 {
   public readonly uuid: string;
   public readonly controls: C;
-  public readonly value: ArrayStateGroup<C>;
+  public readonly value: ControlsValue<C>;
   public readonly dirty: boolean;
   public readonly dirtyAll: boolean;
   public readonly errors: ValidatorError<any>[];
@@ -78,9 +77,7 @@ export class RolsterArrayGroup<
         controls: Object.entries(this.controls).reduce(
           (controls: ReactArrayControls, [key, control]) => {
             controls[key] =
-              control.uuid === options.uuid
-                ? new RolsterArrayControl(options)
-                : control;
+              control.uuid === options.uuid ? control.clone(options) : control;
 
             return controls;
           },

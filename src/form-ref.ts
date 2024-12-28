@@ -2,7 +2,7 @@ import { FormControlOptions } from '@rolster/forms';
 import { createFormControlOptions } from '@rolster/forms/arguments';
 import { ValidatorFn } from '@rolster/validators';
 import { useEffect } from 'react';
-import { useInputControl } from './form-control.hook';
+import { useInputControl } from './form-control';
 import { ReactInputControl } from './types';
 
 interface ReactRefOptions<T = any> extends FormControlOptions<T> {
@@ -41,7 +41,7 @@ export function useTextRefControl(
   options: TextRefOptions
 ): ReactInputControl<string>;
 export function useTextRefControl(
-  state: string,
+  value: string,
   validators?: ValidatorFn<string>[]
 ): ReactInputControl<string>;
 export function useTextRefControl(
@@ -64,7 +64,7 @@ export function useNumberRefControl(
   options: NumberRefOptions
 ): ReactInputControl<number>;
 export function useNumberRefControl(
-  state: number,
+  value: number,
   validators?: ValidatorFn<number>[]
 ): ReactInputControl<number>;
 export function useNumberRefControl(

@@ -7,35 +7,52 @@ import { v4 as uuid } from 'uuid';
 import {
   ReactArrayControl,
   ReactArrayControlOptions,
-  ReactSubscriberControl,
   ReactHtmlArrayControl,
-  ReactInputArrayControl
+  ReactInputArrayControl,
+  ReactSubscriberControl
 } from '../types';
 
-export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
-  implements ReactArrayControl<E, T>
+type BaseReactArrayControl<E extends HTMLElement = HTMLElement, T = any> = Omit<
+  ReactArrayControl<E, T>,
+  'clone' | 'invalid' | 'valid' | 'wrong'
+>;
+
+export class RolsterBaseArrayControl<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> implements BaseReactArrayControl<E, T>
 {
-  public readonly uuid: string;
-  public readonly value: T;
-  public readonly focused: boolean;
-  public readonly unfocused: boolean;
-  public readonly disabled: boolean;
-  public readonly enabled: boolean;
-  public readonly touched: boolean;
-  public readonly untouched: boolean;
-  public readonly dirty: boolean;
-  public readonly pristine: boolean;
-  public readonly valid: boolean;
-  public readonly invalid: boolean;
-  public readonly wrong: boolean;
   public readonly errors: ValidatorError<T>[];
+
+  public readonly value: T;
+
+  public readonly dirty: boolean;
+
+  public readonly disabled: boolean;
+
+  public readonly enabled: boolean;
+
+  public readonly focused: boolean;
+
+  public readonly pristine: boolean;
+
+  public readonly touched: boolean;
+
+  public readonly unfocused: boolean;
+
+  public readonly uuid: string;
+
+  public readonly untouched: boolean;
+
   public readonly error?: ValidatorError<T>;
+
   public readonly validators?: ValidatorFn<T>[];
 
-  elementRef?: RefObject<E>;
+  public elementRef?: RefObject<E>;
 
   private initialValue: T;
-  private subscriber?: ReactSubscriberControl<T>;
+
+  protected subscriber?: ReactSubscriberControl<T>;
 
   constructor(options: ReactArrayControlOptions<T>) {
     this.initialValue = options.initialValue;
@@ -55,43 +72,43 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
     this.validators = validators;
 
     this.errors = validators ? controlIsValid({ value, validators }) : [];
-
     this.error = this.errors[0];
-    this.valid = this.errors.length === 0;
-    this.invalid = !this.valid;
-    this.wrong = this.touched && this.invalid;
+  }
+
+  protected get currentInitialValue(): T {
+    return this.initialValue;
   }
 
   public focus(): void {
-    this.unfocused && this.update({ focused: true });
+    this.unfocused && this.refresh({ focused: true });
   }
 
   public blur(): void {
-    this.focused && this.update({ focused: false, touched: true });
+    this.focused && this.refresh({ focused: false, touched: true });
   }
 
   public disable(): void {
-    this.enabled && this.update({ disabled: true });
+    this.enabled && this.refresh({ disabled: true });
   }
 
   public enable(): void {
-    this.disabled && this.update({ disabled: false });
+    this.disabled && this.refresh({ disabled: false });
   }
 
   public touch(): void {
-    this.untouched && this.update({ touched: true });
+    this.untouched && this.refresh({ touched: true });
   }
 
   public setValue(value: T): void {
-    this.update({ value });
+    this.refresh({ value });
   }
 
   public setValidators(validators?: ValidatorFn<T>[]): void {
-    this.update({ validators });
+    this.refresh({ validators });
   }
 
-  public subscribe(listener: ReactSubscriberControl<T>): void {
-    this.subscriber = listener;
+  public subscribe(subscriber: ReactSubscriberControl<T>): void {
+    this.subscriber = subscriber;
   }
 
   public hasError(key: string): boolean {
@@ -103,16 +120,45 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   }
 
   public reset(): void {
-    this.update({ value: this.initialValue, dirty: false, touched: false });
+    this.refresh({
+      dirty: false,
+      touched: false,
+      value: this.currentInitialValue
+    });
   }
 
-  private update(changes: Partial<ReactArrayControlOptions<T>>): void {
+  protected refresh(changes: Partial<ReactArrayControlOptions<T>>): void {
     this.subscriber &&
       this.subscriber({
         ...this,
         ...changes,
         initialValue: this.initialValue
       });
+  }
+}
+
+export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
+  extends RolsterBaseArrayControl<E, T>
+  implements ReactArrayControl<E, T>
+{
+  public readonly invalid: boolean;
+
+  public readonly valid: boolean;
+
+  public readonly wrong: boolean;
+
+  constructor(options: ReactArrayControlOptions<T>) {
+    super(options);
+
+    this.valid = this.errors.length === 0;
+    this.invalid = !this.valid;
+    this.wrong = this.touched && this.invalid;
+  }
+
+  public clone(
+    options: ReactArrayControlOptions<T>
+  ): RolsterArrayControl<E, T> {
+    return new RolsterArrayControl(options);
   }
 }
 
@@ -132,8 +178,8 @@ function rolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>(
 
   return new RolsterArrayControl({
     ...controlOptions,
-    uuid: uuid(),
-    initialValue: controlOptions.value
+    initialValue: controlOptions.value,
+    uuid: uuid()
   });
 }
 
