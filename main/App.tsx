@@ -38,7 +38,7 @@ export function App() {
   });
 
   function onLog(): void {
-    console.log(employees.invalid);
+    console.log(employees.value);
   }
 
   function onNewPerson(): void {
@@ -46,12 +46,10 @@ export function App() {
       formArrayGroup({
         name: inputArrayControl<string>('', [required]),
         occupation: inputArrayControl<string>('', [required]),
-        phones: formArrayList<PhoneArrayControls>({
-          valueToControls: ({ country, number }) => ({
-            country: inputArrayControl(country),
-            number: inputArrayControl(number)
-          })
-        }),
+        phones: formArrayList<PhoneArrayControls>(({ country, number }) => ({
+          country: inputArrayControl(country),
+          number: inputArrayControl(number)
+        })),
         salary: inputArrayControl(0)
       })
     );
@@ -61,7 +59,10 @@ export function App() {
     const person = employees.controls.persons.groups[0];
 
     if (person) {
-      person.controls.phones.push({ country: '', number: '' });
+      person.controls.phones.push({
+        country: inputArrayControl(''),
+        number: inputArrayControl('')
+      });
     }
   }
 
@@ -107,6 +108,13 @@ export function App() {
               return (
                 <div key={index} className="person__phone">
                   <input
+                    className={phones.country.focused ? 'focus' : 'unfocus'}
+                    onFocus={() => {
+                      phones.country.focus();
+                    }}
+                    onBlur={() => {
+                      phones.country.blur();
+                    }}
                     value={phones.country.value}
                     onInput={(event) => {
                       phones.country.setValue(

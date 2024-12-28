@@ -52,6 +52,7 @@ export type ReactSubscriberControl<T = any> = (
 export interface ReactArrayListOptions<
   C extends ReactArrayControls = ReactArrayControls
 > extends ReactArrayControlOptions<ArrayControlsValue<C>[]> {
+  controls: C[];
   valueToControls: ArrayListValueToControls<C>;
 }
 

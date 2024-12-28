@@ -27,7 +27,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@rolster/forms": "^2.7.1",
+    "@rolster/forms": "^2.7.2",
     "@rolster/validators": "^2.0.2",
     "react": "^18.2.0",
     "uuid": "^9.0.1"

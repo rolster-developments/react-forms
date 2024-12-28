@@ -50,7 +50,7 @@ export class RolsterReactArrayControl<
 
   public elementRef?: RefObject<E>;
 
-  private initialValue: T;
+  protected initialValue: T;
 
   protected subscriber?: ReactSubscriberControl<T>;
 
@@ -73,10 +73,6 @@ export class RolsterReactArrayControl<
 
     this.errors = validators ? controlIsValid({ value, validators }) : [];
     this.error = this.errors[0];
-  }
-
-  protected get currentInitialValue(): T {
-    return this.initialValue;
   }
 
   public focus(): void {
@@ -123,7 +119,7 @@ export class RolsterReactArrayControl<
     this.refresh({
       dirty: false,
       touched: false,
-      value: this.currentInitialValue
+      value: this.initialValue
     });
   }
 
