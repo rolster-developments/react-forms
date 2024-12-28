@@ -12,15 +12,15 @@ import {
   ReactSubscriberControl
 } from '../types';
 
-type BaseReactArrayControl<E extends HTMLElement = HTMLElement, T = any> = Omit<
-  ReactArrayControl<E, T>,
-  'clone' | 'invalid' | 'valid' | 'wrong'
->;
-
-export class RolsterBaseArrayControl<
+type RolsterBaseArrayControl<
   E extends HTMLElement = HTMLElement,
   T = any
-> implements BaseReactArrayControl<E, T>
+> = Omit<ReactArrayControl<E, T>, 'clone' | 'invalid' | 'valid' | 'wrong'>;
+
+export class RolsterReactArrayControl<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> implements RolsterBaseArrayControl<E, T>
 {
   public readonly errors: ValidatorError<T>[];
 
@@ -138,7 +138,7 @@ export class RolsterBaseArrayControl<
 }
 
 export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
-  extends RolsterBaseArrayControl<E, T>
+  extends RolsterReactArrayControl<E, T>
   implements ReactArrayControl<E, T>
 {
   public readonly invalid: boolean;

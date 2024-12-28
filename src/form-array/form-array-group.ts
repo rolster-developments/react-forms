@@ -75,13 +75,13 @@ export class RolsterArrayGroup<
     const subscriber: ReactSubscriberControl = (options) => {
       this.update({
         controls: Object.entries(this.controls).reduce(
-          (controls: ReactArrayControls, [key, control]) => {
-            controls[key] =
+          (controls, [key, control]) => {
+            (controls as any)[key] =
               control.uuid === options.uuid ? control.clone(options) : control;
 
             return controls;
           },
-          {}
+          {} as C
         )
       });
     };

@@ -17,5 +17,13 @@
 .person {
   position: relative;
   display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+}
+
+.person__body,
+.person__phone {
+  position: relative;
+  display: flex;
   column-gap: 8px;
 }

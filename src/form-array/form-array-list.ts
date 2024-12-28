@@ -7,13 +7,13 @@ import {
   ReactArrayList,
   ReactArrayListOptions
 } from '../types';
-import { RolsterBaseArrayControl } from './form-array-control';
+import { RolsterReactArrayControl } from './form-array-control';
 
 export class RolsterArrayList<
     E extends HTMLElement = HTMLElement,
     C extends ReactArrayControls = ReactArrayControls
   >
-  extends RolsterBaseArrayControl<E, ArrayControlsValue<C>[]>
+  extends RolsterReactArrayControl<E, ArrayControlsValue<C>[]>
   implements ReactArrayList<C>
 {
   public readonly controls: C[];
@@ -68,10 +68,23 @@ export class RolsterArrayList<
     const controls = this.valueToControls(value);
 
     Object.values(controls).forEach((control) => {
-      control.subscribe(() => {
-        this.refresh({
-          value: this.controls.map((controls) => controlsToValue(controls))
-        });
+      control.subscribe((options) => {
+        const value = this.controls
+          .map((currentControls) =>
+            currentControls !== controls
+              ? currentControls
+              : Object.entries(controls).reduce((controls, [key, control]) => {
+                  (controls as any)[key] =
+                    control.uuid === options.uuid
+                      ? control.clone(options)
+                      : control;
+
+                  return controls;
+                }, {} as C)
+          )
+          .map((controls) => controlsToValue(controls));
+
+        this.refresh({ value });
       });
     });
 
