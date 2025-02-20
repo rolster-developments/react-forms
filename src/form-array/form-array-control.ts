@@ -95,6 +95,11 @@ export class RolsterReactArrayControl<
     this.untouched && this.refresh({ touched: true });
   }
 
+  public setInitialValue(value: T): void {
+    this.initialValue = value;
+    this.setValue(value);
+  }
+
   public setValue(value: T): void {
     this.refresh({ value });
   }

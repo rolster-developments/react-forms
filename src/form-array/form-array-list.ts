@@ -83,9 +83,9 @@ export class RolsterArrayList<
   private subscribeControls(newControls: C): void {
     Object.values(newControls).forEach((control) => {
       control.subscribe((options) => {
-        const controls = this.controls.map((currentControls) =>
-          currentControls !== newControls
-            ? currentControls
+        const controls = this.controls.map((_controls) =>
+          _controls !== newControls
+            ? _controls
             : Object.entries(newControls).reduce((controls, [key, control]) => {
                 (controls as any)[key] =
                   control.uuid === options.uuid

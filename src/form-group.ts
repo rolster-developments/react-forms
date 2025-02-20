@@ -20,14 +20,14 @@ export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C> | C,
   groupValidators?: ValidatorGroupFn<C>[]
 ): ReactGroup<C> {
-  const groupOptions = createFormGroupOptions<C, FormGroupOptions<C>>(
+  const _options = createFormGroupOptions<C, FormGroupOptions<C>>(
     options,
     groupValidators
   );
 
-  const [validators, setValidators] = useState(groupOptions.validators);
+  const [validators, setValidators] = useState(_options.validators);
 
-  const { controls } = groupOptions;
+  const { controls } = _options;
 
   const errors = validators ? groupIsValid({ controls, validators }) : [];
   const valid = errors.length === 0 && controlsAllChecked(controls, 'valid');

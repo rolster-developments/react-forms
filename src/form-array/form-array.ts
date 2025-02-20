@@ -12,7 +12,8 @@ import {
   hasError as rolsterHasError,
   someErrors as rolsterSomeErrors
 } from '@rolster/forms/helpers';
-import { useEffect, useRef, useState } from 'react';
+import { ValidatorError } from '@rolster/validators';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ReactArrayControls,
   ReactArrayGroup,
@@ -31,6 +32,14 @@ interface ArrayState<
   groups: G[];
   value: ArrayControlsValue<C>[];
   validators?: ValidatorArrayFn<C, R>[];
+}
+
+interface ArrayControlState {
+  valid: boolean;
+  dirty: boolean;
+  dirtyAll: boolean;
+  touched: boolean;
+  touchedAll: boolean;
 }
 
 export function useFormArray<
@@ -57,40 +66,37 @@ export function useFormArray<
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 >(
   options?: FormArrayOptions<C, R, G> | ReactArrayGroup<C, R>[],
-  arrayValidators?: ValidatorArrayFn<C, R>[]
+  validators?: ValidatorArrayFn<C, R>[]
 ): ReactFormArray<C, R, G> {
-  const arrayOptions = createFormArrayOptions<
-    C,
-    R,
-    G,
-    FormArrayOptions<C, R, G>
-  >(options, arrayValidators);
+  const _options = createFormArrayOptions<C, R, G, FormArrayOptions<C, R, G>>(
+    options,
+    validators
+  );
 
-  const groups = arrayOptions.groups || [];
-  const currentState = useRef(groups);
+  const groups = _options.groups || [];
+  const _value = useRef(groups);
 
   const [state, setState] = useState<ArrayState<C, R, G>>({
     controls: groups.map(({ controls }) => controls),
     disabled: false,
     groups,
     value: groups.map(({ controls }) => controlsToValue(controls)),
-    validators: arrayOptions.validators
+    validators: _options.validators
   });
 
-  const errors = state.validators
-    ? arrayIsValid({ groups, validators: state.validators })
-    : [];
-  const error = errors[0];
-  const valid = errors.length === 0 && groupAllChecked(state.groups, 'valid');
+  const [errors, setErrors] = useState<ValidatorError<any>[]>([]);
 
-  const dirty = groupPartialChecked(state.groups, 'dirty');
-  const dirtyAll = groupAllChecked(state.groups, 'dirty');
-  const touched = groupPartialChecked(state.groups, 'touched');
-  const touchedAll = groupAllChecked(state.groups, 'touched');
+  const [controlState, setControlState] = useState<ArrayControlState>({
+    valid: false,
+    dirty: false,
+    dirtyAll: false,
+    touched: false,
+    touchedAll: false
+  });
 
   useEffect(() => {
     const subscriber: ReactSubscriberGroup<C, R> = (options) => {
-      setGroups(
+      setValue(
         state.groups.map((group) =>
           group.uuid === options.uuid
             ? new RolsterArrayGroup<C, R>(options)
@@ -102,82 +108,107 @@ export function useFormArray<
     state.groups.forEach((group) => {
       group.subscribe(subscriber);
     });
+
+    setState((_state) => ({
+      ..._state,
+      controls: state.groups.map(({ controls }) => controls),
+      value: state.groups.map(({ controls }) => controlsToValue(controls))
+    }));
   }, [state.groups]);
 
-  function disable(): void {
+  useEffect(() => {
+    setErrors(
+      state.validators
+        ? arrayIsValid({
+            groups: state.groups,
+            validators: state.validators
+          })
+        : []
+    );
+  }, [state.groups, state.validators]);
+
+  useEffect(() => {
+    setControlState({
+      valid: errors.length === 0 && groupAllChecked(state.groups, 'valid'),
+      dirty: groupPartialChecked(state.groups, 'dirty'),
+      dirtyAll: groupAllChecked(state.groups, 'dirty'),
+      touched: groupPartialChecked(state.groups, 'touched'),
+      touchedAll: groupAllChecked(state.groups, 'touched')
+    });
+  }, [state.groups, errors]);
+
+  const disable = useCallback(() => {
     setState((state) => ({ ...state, disabled: true }));
-  }
+  }, []);
 
-  function enable(): void {
+  const enable = useCallback(() => {
     setState((state) => ({ ...state, disabled: false }));
-  }
+  }, []);
 
-  function setGroups(groups: G[]): void {
-    setState((currentState) => ({
-      ...currentState,
-      groups,
-      controls: groups.map(({ controls }) => controls),
-      value: groups.map(({ controls }) => controlsToValue(controls))
+  const setValue = useCallback((groups: G[]) => {
+    setState((state) => ({ ...state, groups }));
+  }, []);
+
+  const setInitialValue = useCallback((groups: G[]) => {
+    setState((state) => ({ ...state, groups }));
+    _value.current = groups;
+  }, []);
+
+  const push = useCallback((group: G) => {
+    setState((state) => ({ ...state, groups: [...state.groups, group] }));
+  }, []);
+
+  const merge = useCallback((groups: G[]) => {
+    setState((state) => ({ ...state, groups: [...state.groups, ...groups] }));
+  }, []);
+
+  const remove = useCallback(({ uuid }: G) => {
+    setState((state) => ({
+      ...state,
+      groups: state.groups.filter((group) => group.uuid !== uuid)
     }));
-  }
+  }, []);
 
-  function push(group: G): void {
-    setGroups([...state.groups, group]);
-  }
+  const reset = useCallback(() => {
+    setState((state) => ({ ...state, groups: _value.current }));
+  }, []);
 
-  function merge(groups: G[]): void {
-    setGroups([...state.groups, ...groups]);
-  }
-
-  function set(groups: G[]): void {
-    setGroups(groups);
-  }
-
-  function remove({ uuid }: G): void {
-    setGroups(state.groups.filter((group) => group.uuid !== uuid));
-  }
-
-  function hasError(key: string): boolean {
-    return rolsterHasError(errors, key);
-  }
-
-  function someErrors(keys: string[]): boolean {
-    return rolsterSomeErrors(errors, keys);
-  }
-
-  function reset(): void {
-    setGroups(currentState.current);
-  }
-
-  function setValidators(validators?: ValidatorArrayFn<C, R>[]): void {
+  const setValidators = useCallback((validators?: ValidatorArrayFn<C, R>[]) => {
     setState((state) => ({ ...state, validators }));
-  }
+  }, []);
+
+  const hasError = useCallback(
+    (key: string) => rolsterHasError(errors, key),
+    [errors]
+  );
+
+  const someErrors = useCallback(
+    (keys: string[]) => rolsterSomeErrors(errors, keys),
+    [errors]
+  );
 
   return {
     ...state,
-    dirty,
-    dirtyAll,
+    ...controlState,
     disable,
     enable,
     enabled: !state.disabled,
-    error,
-    errors,
+    error: errors[0],
+    errors: errors,
     hasError,
-    invalid: !valid,
+    invalid: !controlState.valid,
     merge,
-    pristine: !dirty,
-    pristineAll: !dirtyAll,
+    pristine: !controlState.dirty,
+    pristineAll: !controlState.dirtyAll,
     push,
     remove,
     reset,
-    set,
+    setInitialValue,
     setValidators,
+    setValue,
     someErrors,
-    touched,
-    touchedAll,
-    untouched: !touched,
-    untouchedAll: !touchedAll,
-    valid,
-    wrong: touched && !valid
+    untouched: !controlState.touched,
+    untouchedAll: !controlState.touchedAll,
+    wrong: controlState.touched && !controlState.valid
   };
 }

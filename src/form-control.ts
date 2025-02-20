@@ -5,8 +5,8 @@ import {
   hasError as rolsterHasError,
   someErrors as rolsterSomeErrors
 } from '@rolster/forms/helpers';
-import { ValidatorFn } from '@rolster/validators';
-import { useRef, useState } from 'react';
+import { ValidatorError, ValidatorFn } from '@rolster/validators';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
 
 interface ReactControlOptions<T = any> extends FormControlOptions<T> {
@@ -23,78 +23,92 @@ interface ControlState<T = any> {
 }
 
 function useControl<E extends HTMLElement, T = any>(
-  controlOptions?: ReactControlOptions<T> | T,
-  controlValidators?: ValidatorFn<T>[]
+  options?: ReactControlOptions<T> | T,
+  validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T> {
-  const { value, touched, validators } = createFormControlOptions<
-    T,
-    ReactControlOptions<T>
-  >(controlOptions, controlValidators);
+  const _options = createFormControlOptions<T, ReactControlOptions<T>>(
+    options,
+    validators
+  );
 
   const [state, setState] = useState<ControlState<T>>({
     dirty: false,
     disabled: false,
     focused: false,
-    touched: !!touched,
-    validators,
-    value
+    touched: !!_options.touched,
+    validators: _options.validators,
+    value: _options.value
   });
 
-  const initialValue = useRef<T>(value);
+  const [errors, setErrors] = useState<ValidatorError<any>[]>([]);
+
+  const initialValue = useRef<T>(_options.value);
   const elementRef = useRef<E>(null);
 
-  const errors = state.validators
-    ? controlIsValid({
-        value: state.value,
-        validators: state.validators
-      })
-    : [];
-  const valid = errors.length === 0;
+  useEffect(() => {
+    setErrors(
+      state.validators
+        ? controlIsValid({
+            value: state.value,
+            validators: state.validators
+          })
+        : []
+    );
+  }, [state.value, state.validators]);
 
-  function focus(): void {
+  const focus = useCallback(() => {
     setState((state) => ({ ...state, focused: true }));
-  }
+  }, []);
 
-  function blur(): void {
+  const blur = useCallback(() => {
     setState((state) => ({ ...state, focused: false, touched: true }));
-  }
+  }, []);
 
-  function disable(): void {
+  const disable = useCallback(() => {
     setState((state) => ({ ...state, disabled: true }));
-  }
+  }, []);
 
-  function enable(): void {
+  const enable = useCallback(() => {
     setState((state) => ({ ...state, disabled: false }));
-  }
+  }, []);
 
-  function touch(): void {
+  const touch = useCallback(() => {
     setState((state) => ({ ...state, touched: true }));
-  }
+  }, []);
 
-  function setValue(value: T): void {
+  const setInitialValue = useCallback((value: T) => {
+    initialValue.current = value;
     setState((state) => ({ ...state, dirty: true, value }));
-  }
+  }, []);
 
-  function setValidators(validators?: ValidatorFn<T>[]): void {
+  const setValue = useCallback((value: T) => {
+    setState((state) => ({ ...state, dirty: true, value }));
+  }, []);
+
+  const setValidators = useCallback((validators?: ValidatorFn<T>[]) => {
     setState((state) => ({ ...state, validators }));
-  }
+  }, []);
 
-  function hasError(key: string): boolean {
-    return rolsterHasError(errors, key);
-  }
-
-  function someErrors(keys: string[]): boolean {
-    return rolsterSomeErrors(errors, keys);
-  }
-
-  function reset(): void {
+  const reset = useCallback(() => {
     setState((state) => ({
       ...state,
       dirty: false,
       value: initialValue.current,
       touched: false
     }));
-  }
+  }, []);
+
+  const hasError = useCallback(
+    (key: string) => rolsterHasError(errors, key),
+    [errors]
+  );
+
+  const someErrors = useCallback(
+    (keys: string[]) => rolsterSomeErrors(errors, keys),
+    [errors]
+  );
+
+  const valid = errors.length === 0;
 
   return {
     ...state,
@@ -110,6 +124,7 @@ function useControl<E extends HTMLElement, T = any>(
     invalid: !valid,
     pristine: !state.dirty,
     reset,
+    setInitialValue,
     setValidators,
     setValue,
     someErrors,
