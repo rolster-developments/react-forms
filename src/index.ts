@@ -12,4 +12,5 @@ export {
   useReactControl
 } from './form-control';
 export { useFormGroup } from './form-group';
+export * from './helpers';
 export * from './types';
