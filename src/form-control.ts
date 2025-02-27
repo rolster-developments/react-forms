@@ -6,7 +6,7 @@ import {
   someErrors as rolsterSomeErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
 
 interface ReactControlOptions<T = any> extends FormControlOptions<T> {
@@ -16,10 +16,18 @@ interface ReactControlOptions<T = any> extends FormControlOptions<T> {
 interface ControlState<T = any> {
   dirty: boolean;
   disabled: boolean;
+  errors: ValidatorError<any>[];
   focused: boolean;
   value: T;
   touched: boolean;
   validators?: ValidatorFn<T>[];
+}
+
+function errorsInControl<T = any>(
+  value: T,
+  validators?: ValidatorFn<T>[]
+): ValidatorError<any>[] {
+  return validators ? controlIsValid({ value, validators }) : [];
 }
 
 function useControl<E extends HTMLElement, T = any>(
@@ -31,30 +39,19 @@ function useControl<E extends HTMLElement, T = any>(
     validators
   );
 
+  const initialValue = useRef<T>(_options.value);
+
   const [state, setState] = useState<ControlState<T>>({
     dirty: false,
     disabled: false,
+    errors: errorsInControl(_options.value, _options.validators),
     focused: false,
     touched: !!_options.touched,
-    validators: _options.validators,
-    value: _options.value
+    value: _options.value,
+    validators: _options.validators
   });
 
-  const [errors, setErrors] = useState<ValidatorError<any>[]>([]);
-
-  const initialValue = useRef<T>(_options.value);
   const elementRef = useRef<E>(null);
-
-  useEffect(() => {
-    setErrors(
-      state.validators
-        ? controlIsValid({
-            value: state.value,
-            validators: state.validators
-          })
-        : []
-    );
-  }, [state.value, state.validators]);
 
   const focus = useCallback(() => {
     setState((state) => ({ ...state, focused: true }));
@@ -78,37 +75,53 @@ function useControl<E extends HTMLElement, T = any>(
 
   const setInitialValue = useCallback((value: T) => {
     initialValue.current = value;
-    setState((state) => ({ ...state, dirty: true, value }));
+
+    setState((state) => ({
+      ...state,
+      dirty: true,
+      errors: errorsInControl(value, state.validators),
+      value
+    }));
   }, []);
 
   const setValue = useCallback((value: T) => {
-    setState((state) => ({ ...state, dirty: true, value }));
+    setState((state) => ({
+      ...state,
+      dirty: true,
+      errors: errorsInControl(value, state.validators),
+      value
+    }));
   }, []);
 
   const setValidators = useCallback((validators?: ValidatorFn<T>[]) => {
-    setState((state) => ({ ...state, validators }));
+    setState((state) => ({
+      ...state,
+      errors: errorsInControl(state.value, validators),
+      validators
+    }));
   }, []);
 
   const reset = useCallback(() => {
     setState((state) => ({
       ...state,
       dirty: false,
+      errors: errorsInControl(initialValue.current, state.validators),
       value: initialValue.current,
       touched: false
     }));
   }, []);
 
   const hasError = useCallback(
-    (key: string) => rolsterHasError(errors, key),
-    [errors]
+    (key: string) => rolsterHasError(state.errors, key),
+    [state.errors]
   );
 
   const someErrors = useCallback(
-    (keys: string[]) => rolsterSomeErrors(errors, keys),
-    [errors]
+    (keys: string[]) => rolsterSomeErrors(state.errors, keys),
+    [state.errors]
   );
 
-  const valid = errors.length === 0;
+  const valid = state.errors.length === 0;
 
   return {
     ...state,
@@ -117,8 +130,7 @@ function useControl<E extends HTMLElement, T = any>(
     elementRef,
     enable,
     enabled: !state.disabled,
-    error: errors[0],
-    errors,
+    error: state.errors[0],
     focus,
     hasError,
     invalid: !valid,

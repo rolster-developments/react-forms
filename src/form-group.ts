@@ -1,13 +1,50 @@
-import { FormGroupOptions, ValidatorGroupFn } from '@rolster/forms';
+import {
+  ControlsValue,
+  FormGroupOptions,
+  ValidatorGroupFn
+} from '@rolster/forms';
 import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
   controlsAllChecked,
   controlsPartialChecked,
   controlsToValue,
-  groupIsValid
+  groupIsValid,
+  reduceControlsToArray
 } from '@rolster/forms/helpers';
-import { useState } from 'react';
+import { ValidatorError } from '@rolster/validators';
+import { useCallback, useEffect, useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
+
+interface GroupState<C extends ReactControls> {
+  controls: C;
+  dirties: boolean;
+  dirty: boolean;
+  errors: ValidatorError[];
+  touched: boolean;
+  toucheds: boolean;
+  valid: boolean;
+  value: ControlsValue<C>;
+  validators?: ValidatorGroupFn<C>[];
+}
+
+function errorsInGroup<C extends ReactControls>(
+  controls: C,
+  validators?: ValidatorGroupFn<C>[]
+): ValidatorError<any>[] {
+  return validators ? groupIsValid({ controls, validators }) : [];
+}
+
+function validStateInGroup<C extends ReactControls>(
+  controls: C,
+  validators?: ValidatorGroupFn<C>[]
+) {
+  const errors = errorsInGroup(controls, validators);
+
+  return {
+    errors,
+    valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+  };
+}
 
 export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C>
@@ -18,48 +55,85 @@ export function useFormGroup<C extends ReactControls>(
 ): ReactGroup<C>;
 export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C> | C,
-  groupValidators?: ValidatorGroupFn<C>[]
+  validators?: ValidatorGroupFn<C>[]
 ): ReactGroup<C> {
   const _options = createFormGroupOptions<C, FormGroupOptions<C>>(
     options,
-    groupValidators
+    validators
   );
-
-  const [validators, setValidators] = useState(_options.validators);
 
   const { controls } = _options;
 
-  const errors = validators ? groupIsValid({ controls, validators }) : [];
-  const valid = errors.length === 0 && controlsAllChecked(controls, 'valid');
-  const value = controlsToValue(controls);
-  const dirty = controlsPartialChecked(controls, 'dirty');
-  const dirtyAll = controlsAllChecked(controls, 'dirty');
-  const touched = controlsPartialChecked(controls, 'touched');
-  const touchedAll = controlsAllChecked(controls, 'touched');
+  const [state, setState] = useState<GroupState<C>>({
+    ...validStateInGroup(controls, _options.validators),
+    controls,
+    dirties: controlsAllChecked(controls, 'dirty'),
+    dirty: controlsPartialChecked(controls, 'dirty'),
+    touched: controlsPartialChecked(controls, 'touched'),
+    toucheds: controlsAllChecked(controls, 'touched'),
+    value: controlsToValue(controls),
+    validators: _options.validators
+  });
 
-  function reset(): void {
+  useEffect(
+    () => {
+      setState((state) => ({
+        ...state,
+        controls,
+        dirty: controlsPartialChecked(controls, 'dirty'),
+        dirties: controlsAllChecked(controls, 'dirty')
+      }));
+    },
+    reduceControlsToArray(controls, 'dirty')
+  );
+
+  useEffect(
+    () => {
+      setState((state) => ({
+        ...state,
+        controls,
+        touched: controlsPartialChecked(controls, 'touched'),
+        toucheds: controlsAllChecked(controls, 'touched')
+      }));
+    },
+    reduceControlsToArray(controls, 'touched')
+  );
+
+  useEffect(
+    () => {
+      setState((state) => ({
+        ...state,
+        ...validStateInGroup(controls, state.validators),
+        controls,
+        value: controlsToValue(controls)
+      }));
+    },
+    reduceControlsToArray(controls, 'value')
+  );
+
+  const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
+    setState((state) => ({
+      ...state,
+      ...validStateInGroup(state.controls, validators)
+    }));
+  }, []);
+
+  const reset = useCallback(() => {
     Object.values(controls).forEach((control) => {
       control.reset();
     });
-  }
+  }, []);
 
   return {
-    controls,
-    dirty,
-    dirtyAll,
-    error: errors[0],
-    errors,
-    invalid: !valid,
-    pristine: !dirty,
-    pristineAll: !dirtyAll,
+    ...state,
+    error: state.errors[0],
+    invalid: !state.valid,
+    pristine: !state.dirty,
+    pristines: !state.dirties,
     reset,
     setValidators,
-    touched,
-    touchedAll,
-    untouched: !touched,
-    untouchedAll: !touchedAll,
-    valid,
-    value,
-    wrong: touched && !valid
+    untouched: !state.touched,
+    untoucheds: !state.toucheds,
+    wrong: state.touched && !state.valid
   };
 }

@@ -1,10 +1,16 @@
-import { ReactControls, ReactGroup } from './types';
+import { reduceControlsToArray } from '@rolster/forms/helpers';
+import { ReactControls, ReactFormControl, ReactGroup } from './types';
 
-type ControlsValue<C extends ReactControls = ReactControls> =
-  C[keyof C]['value'][];
+export function reduceControlsToValues<
+  T extends ReactFormControl,
+  C extends ReactControls<T>
+>(controls: C): T['value'][] {
+  return reduceControlsToArray(controls, 'value');
+}
 
-export function formGroupToArray<C extends ReactControls = ReactControls>({
-  controls
-}: ReactGroup<C>): ControlsValue<C>[] {
-  return Object.values(controls).map(({ value }) => value);
+export function reduceGroupToArray<
+  T extends ReactFormControl,
+  C extends ReactControls<T>
+>(group: ReactGroup<C>): T['value'][] {
+  return reduceControlsToValues(group.controls);
 }

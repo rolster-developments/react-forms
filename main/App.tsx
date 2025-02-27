@@ -1,5 +1,6 @@
+import { reduceControlsToArray } from '@rolster/forms/helpers';
 import { required } from '@rolster/validators/helpers';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   formArrayGroup,
   formArrayList,
@@ -9,8 +10,10 @@ import {
   ReactControls,
   ReactFormArray,
   ReactInputArrayControl,
+  ReactInputControl,
   useFormArray,
-  useFormGroup
+  useFormGroup,
+  useInputControl
 } from '../src';
 import './index.css';
 
@@ -27,18 +30,31 @@ interface PersonArrayControls extends ReactArrayControls {
 }
 
 interface EmployeeControls extends ReactControls {
+  superuser: ReactInputControl<string>;
+  role: ReactInputControl<string>;
+  address: ReactInputControl<string>;
   persons: ReactFormArray<PersonArrayControls>;
 }
 
 export function App() {
   const employees = useFormGroup<EmployeeControls>({
     controls: {
+      superuser: useInputControl('Daniel', [required]),
+      role: useInputControl('Ing de sistemas', [required]),
+      address: useInputControl('', [required]),
       persons: useFormArray([])
     }
   });
 
+  useEffect(
+    () => {
+      console.log('Cambio en controles');
+    },
+    reduceControlsToArray(employees.controls, 'value')
+  );
+
   function onLog(): void {
-    console.log(employees.value);
+    employees.reset();
   }
 
   function onNewPerson(): void {
@@ -66,9 +82,42 @@ export function App() {
     }
   }
 
+  function onValidator(): void {
+    employees.controls.address.setValidators([]);
+  }
+
   return (
     <div className="employees">
       <label>Listado de empleados</label>
+
+      {employees.valid && <label>Todo esta Perfecto</label>}
+
+      <input
+        value={employees.controls.superuser.value}
+        onInput={(event) => {
+          employees.controls.superuser.setValue(
+            (event.target as HTMLInputElement).value
+          );
+        }}
+      />
+
+      <input
+        value={employees.controls.role.value}
+        onInput={(event) => {
+          employees.controls.role.setValue(
+            (event.target as HTMLInputElement).value
+          );
+        }}
+      />
+
+      <input
+        value={employees.controls.address.value}
+        onInput={(event) => {
+          employees.controls.address.setValue(
+            (event.target as HTMLInputElement).value
+          );
+        }}
+      />
 
       <div className="collection">
         {employees.controls.persons.groups.map((person, index) => (
@@ -148,12 +197,11 @@ export function App() {
         ))}
       </div>
 
-      {employees.valid && <label>Todo esta Perfecto</label>}
-
       <div className="actions">
         <button onClick={onLog}>Log</button>
         <button onClick={onNewPerson}>New Person</button>
         <button onClick={onNewPhone}>New Phone</button>
+        <button onClick={onValidator}>Remove valid</button>
       </div>
     </div>
   );
