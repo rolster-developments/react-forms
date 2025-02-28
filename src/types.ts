@@ -4,7 +4,6 @@ import {
   AbstractArrayControls,
   AbstractArrayGroup,
   AbstractArrayList,
-  AbstractControl,
   AbstractControls,
   AbstractFormControl,
   AbstractFormGroup,
@@ -15,11 +14,7 @@ import {
 } from '@rolster/forms';
 import { ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
-
-interface ReactAbstractControl<E extends HTMLElement = HTMLElement, T = any>
-  extends AbstractControl<T> {
-  elementRef?: RefObject<E>;
-}
+import { ReactAbstractControl } from './definitions';
 
 export interface ReactFormControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractFormControl<T> {

@@ -33,6 +33,7 @@ interface EmployeeControls extends ReactControls {
   superuser: ReactInputControl<string>;
   role: ReactInputControl<string>;
   address: ReactInputControl<string>;
+  age: ReactInputControl<number>;
   persons: ReactFormArray<PersonArrayControls>;
 }
 
@@ -42,6 +43,7 @@ export function App() {
       superuser: useInputControl('Daniel', [required]),
       role: useInputControl('Ing de sistemas', [required]),
       address: useInputControl('', [required]),
+      age: useInputControl(20),
       persons: useFormArray([])
     }
   });
@@ -83,7 +85,9 @@ export function App() {
   }
 
   function onValidator(): void {
-    employees.controls.address.setValidators([]);
+    employees.controls.superuser.setValue('Daniel Castillo');
+    employees.controls.role.setValue('Ing de software');
+    employees.controls.age.setValue(25);
   }
 
   return (
@@ -106,6 +110,15 @@ export function App() {
         onInput={(event) => {
           employees.controls.role.setValue(
             (event.target as HTMLInputElement).value
+          );
+        }}
+      />
+
+      <input
+        value={employees.controls.age.value}
+        onInput={(event) => {
+          employees.controls.age.setValue(
+            +(event.target as HTMLInputElement).value
           );
         }}
       />
