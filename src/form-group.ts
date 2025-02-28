@@ -79,6 +79,28 @@ export function useFormGroup<C extends ReactControls>(
     () => {
       setState((state) => ({
         ...state,
+        ...validStateInGroup(controls, state.validators),
+        controls,
+        value: controlsToValue(controls)
+      }));
+    },
+    reduceControlsToArray(controls, 'value')
+  );
+
+  useEffect(() => {
+    setState((state) => ({
+      ...state,
+      controls
+    }));
+  }, [
+    ...reduceControlsToArray(controls, 'disabled'),
+    ...reduceControlsToArray(controls, 'focused' as any)
+  ]);
+
+  useEffect(
+    () => {
+      setState((state) => ({
+        ...state,
         controls,
         dirty: controlsPartialChecked(controls, 'dirty'),
         dirties: controlsAllChecked(controls, 'dirty')
@@ -97,18 +119,6 @@ export function useFormGroup<C extends ReactControls>(
       }));
     },
     reduceControlsToArray(controls, 'touched')
-  );
-
-  useEffect(
-    () => {
-      setState((state) => ({
-        ...state,
-        ...validStateInGroup(controls, state.validators),
-        controls,
-        value: controlsToValue(controls)
-      }));
-    },
-    reduceControlsToArray(controls, 'value')
   );
 
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {

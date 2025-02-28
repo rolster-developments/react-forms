@@ -96,12 +96,22 @@ export function App() {
 
       {employees.valid && <label>Todo esta Perfecto</label>}
 
+      {employees.controls.superuser.focused && (
+        <span>Estoy enfocado input superuser</span>
+      )}
+
       <input
         value={employees.controls.superuser.value}
         onInput={(event) => {
           employees.controls.superuser.setValue(
             (event.target as HTMLInputElement).value
           );
+        }}
+        onFocus={() => {
+          employees.controls.superuser.focus();
+        }}
+        onBlur={() => {
+          employees.controls.superuser.blur();
         }}
       />
 
