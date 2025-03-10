@@ -13,16 +13,83 @@ import {
 import { ValidatorError } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
 import {
+  ReactArrayAction,
+  ReactArrayControlSubscriber,
   ReactArrayControls,
   ReactArrayGroup,
-  ReactSubscriberControl,
-  ReactSubscriberGroup
+  ReactArrayGroupSubscriber
 } from '../types';
 
-export class RolsterArrayGroup<
+interface ArrayGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
-> implements ReactArrayGroup<C, R>
+> extends FormArrayGroupOptions<C, R> {
+  value: ControlsValue<C>;
+  errors: ValidatorError<any>[];
+  dirties?: boolean;
+  dirty?: boolean;
+  touched?: boolean;
+  toucheds?: boolean;
+  valid?: boolean;
+}
+
+type Options<C extends ReactArrayControls, R = any> = Partial<
+  ArrayGroupOptions<C, R>
+>;
+
+function refactorForValid<C extends ReactArrayControls = ReactArrayControls>(
+  controls: C,
+  validators?: ValidatorGroupFn<C>[]
+) {
+  const errors = validators ? groupIsValid({ controls, validators }) : [];
+
+  return {
+    errors,
+    valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+  };
+}
+
+function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
+  group: BaseArrayGroup<C>,
+  controls: C,
+  action: ReactArrayAction
+) {
+  switch (action) {
+    case 'focused':
+    case 'touched':
+      return {
+        touched: controlsPartialChecked(controls, 'touched'),
+        toucheds: controlsAllChecked(controls, 'touched')
+      };
+
+    case 'validators':
+      return refactorForValid(controls, group.validators);
+
+    case 'reset':
+      return {
+        ...refactorForValid(controls, group.validators),
+        dirty: controlsPartialChecked(controls, 'dirty'),
+        dirties: controlsAllChecked(controls, 'dirty'),
+        touched: controlsPartialChecked(controls, 'touched'),
+        toucheds: controlsAllChecked(controls, 'touched'),
+        value: controlsToValue(controls)
+      };
+
+    case 'value':
+      return {
+        ...refactorForValid(controls, group.validators),
+        dirty: controlsPartialChecked(controls, 'dirty'),
+        dirties: controlsAllChecked(controls, 'dirty'),
+        value: controlsToValue(controls)
+      };
+
+    default:
+      return {};
+  }
+}
+
+class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
+  implements ReactArrayGroup<C, R>
 {
   public readonly uuid: string;
 
@@ -33,10 +100,6 @@ export class RolsterArrayGroup<
   public readonly dirty: boolean;
 
   public readonly dirties: boolean;
-
-  public readonly errors: ValidatorError<any>[];
-
-  public readonly invalid: boolean;
 
   public readonly pristine: boolean;
 
@@ -52,7 +115,11 @@ export class RolsterArrayGroup<
 
   public readonly valid: boolean;
 
+  public readonly invalid: boolean;
+
   public readonly wrong: boolean;
+
+  public readonly errors: ValidatorError<any>[];
 
   public readonly error?: ValidatorError<any>;
 
@@ -60,68 +127,93 @@ export class RolsterArrayGroup<
 
   public readonly resource?: R;
 
-  protected subscriber?: ReactSubscriberGroup<C, R>;
+  private subscriber?: ReactArrayGroupSubscriber<C, R>;
 
-  constructor(options: FormArrayGroupOptions<C, R>) {
-    const { controls, resource, uuid, validators } = options;
-
-    this.uuid = uuid;
-    this.controls = controls;
-    this.validators = validators;
-    this.resource = resource;
-
-    this.errors = validators ? groupIsValid({ controls, validators }) : [];
-    this.error = this.errors[0];
-    this.valid =
-      this.errors.length === 0 && controlsAllChecked(controls, 'valid');
-    this.invalid = !this.valid;
-
-    this.dirty = controlsPartialChecked(controls, 'dirty');
-    this.dirties = controlsAllChecked(controls, 'dirty');
-    this.touched = controlsPartialChecked(controls, 'touched');
-    this.toucheds = controlsAllChecked(controls, 'touched');
-
+  constructor(options: ArrayGroupOptions<C, R>) {
+    this.uuid = options.uuid;
+    this.controls = options.controls;
+    this.value = options.value;
+    this.resource = options.resource;
+    this.dirty = !!options.dirty;
+    this.dirties = !!options.dirties;
     this.pristine = !this.dirty;
     this.pristines = !this.dirties;
+    this.touched = !!options.touched;
+    this.toucheds = !!options.toucheds;
     this.untouched = !this.touched;
     this.untoucheds = !this.toucheds;
-
+    this.valid = !!options.valid;
+    this.invalid = !this.valid;
     this.wrong = this.touched && this.invalid;
-    this.value = controlsToValue(controls);
 
-    const subscriber: ReactSubscriberControl = (options) => {
-      this.refresh({
-        controls: Object.entries(this.controls).reduce(
-          (controls, [key, control]) => {
-            (controls as any)[key] =
-              control.uuid === options.uuid ? control.clone(options) : control;
+    this.errors = options.errors;
+    this.error = this.errors[0];
+    this.validators = options.validators;
 
-            return controls;
-          },
-          {} as C
-        )
+    const subscriber: ReactArrayControlSubscriber = (action, control) => {
+      console.log(action, control);
+      const controls = Object.entries(this.controls).reduce(
+        (controls, [key, arrayControl]) => {
+          if (arrayControl.uuid === control.uuid) {
+            (controls as any)[key] = control;
+          }
+
+          return controls;
+        },
+        this.controls
+      );
+
+      this.refresh(action, {
+        ...refactorForControls(this, controls, action),
+        controls
       });
     };
 
-    Object.values(controls).forEach((control) => {
+    Object.values(this.controls).forEach((control) => {
       control.subscribe(subscriber);
     });
   }
 
-  public setValidators(validators: ValidatorGroupFn<C>[]): void {
-    this.refresh({ validators });
-  }
-
-  public subscribe(subscriber: ReactSubscriberGroup<C, R>): void {
+  public subscribe(subscriber: ReactArrayGroupSubscriber<C, R>): void {
     this.subscriber = subscriber;
   }
 
-  private refresh(changes: Partial<ReactSubscriberGroup<C, R>>): void {
-    this.subscriber && this.subscriber({ ...this, ...changes });
+  public setValidators(validators: ValidatorGroupFn<C, any>[]): void {
+    this.refresh('validators', {
+      ...refactorForValid(this.controls, validators),
+      validators
+    });
+  }
+
+  protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
+    this.subscriber &&
+      this.subscriber(action, new BaseArrayGroup({ ...this, ...options }));
   }
 }
 
-type RolsterGroupOptions<
+class RolsterArrayGroup<
+  C extends ReactArrayControls = ReactArrayControls,
+  R = any
+> extends BaseArrayGroup<C, R> {
+  constructor(options: FormArrayGroupOptions<C, R>) {
+    const { controls, validators } = options;
+
+    const errors = validators ? groupIsValid({ controls, validators }) : [];
+
+    super({
+      ...options,
+      errors,
+      value: controlsToValue(controls),
+      dirties: controlsAllChecked(controls, 'dirty'),
+      dirty: controlsPartialChecked(controls, 'dirty'),
+      touched: controlsPartialChecked(controls, 'touched'),
+      toucheds: controlsAllChecked(controls, 'touched'),
+      valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+    });
+  }
+}
+
+type ReactGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 > = Omit<FormArrayGroupOptions<C, R>, 'uuid'>;
@@ -129,7 +221,7 @@ type RolsterGroupOptions<
 export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
->(options: RolsterGroupOptions<C, R>): ReactArrayGroup<C, R>;
+>(options: ReactGroupOptions<C, R>): ReactArrayGroup<C, R>;
 export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
@@ -138,14 +230,11 @@ export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 >(
-  options: RolsterGroupOptions<C, R> | C,
+  options: ReactGroupOptions<C, R> | C,
   validators?: ValidatorGroupFn<C, R>[]
 ): ReactArrayGroup<C, R> {
   return new RolsterArrayGroup({
-    ...createFormGroupOptions<C, RolsterGroupOptions<C, R>>(
-      options,
-      validators
-    ),
+    ...createFormGroupOptions<C, ReactGroupOptions<C, R>>(options, validators),
     uuid: uuid()
   });
 }

@@ -12,7 +12,7 @@ import {
   reduceControlsToArray
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
 
 interface GroupState<C extends ReactControls> {
@@ -27,18 +27,11 @@ interface GroupState<C extends ReactControls> {
   validators?: ValidatorGroupFn<C>[];
 }
 
-function errorsInGroup<C extends ReactControls>(
-  controls: C,
-  validators?: ValidatorGroupFn<C>[]
-): ValidatorError<any>[] {
-  return validators ? groupIsValid({ controls, validators }) : [];
-}
-
-function validStateInGroup<C extends ReactControls>(
+function refactorForValid<C extends ReactControls>(
   controls: C,
   validators?: ValidatorGroupFn<C>[]
 ) {
-  const errors = errorsInGroup(controls, validators);
+  const errors = validators ? groupIsValid({ controls, validators }) : [];
 
   return {
     errors,
@@ -64,8 +57,15 @@ export function useFormGroup<C extends ReactControls>(
 
   const { controls } = _options;
 
+  const firstEffects = useRef({
+    dirty: true,
+    disabledFocused: true,
+    touched: true,
+    value: true
+  });
+
   const [state, setState] = useState<GroupState<C>>({
-    ...validStateInGroup(controls, _options.validators),
+    ...refactorForValid(controls, _options.validators),
     controls,
     dirties: controlsAllChecked(controls, 'dirty'),
     dirty: controlsPartialChecked(controls, 'dirty'),
@@ -77,21 +77,29 @@ export function useFormGroup<C extends ReactControls>(
 
   useEffect(
     () => {
-      setState((state) => ({
-        ...state,
-        ...validStateInGroup(controls, state.validators),
-        controls,
-        value: controlsToValue(controls)
-      }));
+      if (!firstEffects.current.value) {
+        setState((state) => ({
+          ...state,
+          ...refactorForValid(controls, state.validators),
+          controls,
+          value: controlsToValue(controls)
+        }));
+      } else {
+        firstEffects.current.value = false;
+      }
     },
     reduceControlsToArray(controls, 'value')
   );
 
   useEffect(() => {
-    setState((state) => ({
-      ...state,
-      controls
-    }));
+    if (!firstEffects.current.disabledFocused) {
+      setState((state) => ({
+        ...state,
+        controls
+      }));
+    } else {
+      firstEffects.current.disabledFocused = false;
+    }
   }, [
     ...reduceControlsToArray(controls, 'disabled'),
     ...reduceControlsToArray(controls, 'focused' as any)
@@ -99,24 +107,32 @@ export function useFormGroup<C extends ReactControls>(
 
   useEffect(
     () => {
-      setState((state) => ({
-        ...state,
-        controls,
-        dirty: controlsPartialChecked(controls, 'dirty'),
-        dirties: controlsAllChecked(controls, 'dirty')
-      }));
+      if (!firstEffects.current.dirty) {
+        setState((state) => ({
+          ...state,
+          controls,
+          dirty: controlsPartialChecked(controls, 'dirty'),
+          dirties: controlsAllChecked(controls, 'dirty')
+        }));
+      } else {
+        firstEffects.current.dirty = false;
+      }
     },
     reduceControlsToArray(controls, 'dirty')
   );
 
   useEffect(
     () => {
-      setState((state) => ({
-        ...state,
-        controls,
-        touched: controlsPartialChecked(controls, 'touched'),
-        toucheds: controlsAllChecked(controls, 'touched')
-      }));
+      if (!firstEffects.current.touched) {
+        setState((state) => ({
+          ...state,
+          controls,
+          touched: controlsPartialChecked(controls, 'touched'),
+          toucheds: controlsAllChecked(controls, 'touched')
+        }));
+      } else {
+        firstEffects.current.touched = false;
+      }
     },
     reduceControlsToArray(controls, 'touched')
   );
@@ -124,7 +140,7 @@ export function useFormGroup<C extends ReactControls>(
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
     setState((state) => ({
       ...state,
-      ...validStateInGroup(state.controls, validators)
+      ...refactorForValid(state.controls, validators)
     }));
   }, []);
 

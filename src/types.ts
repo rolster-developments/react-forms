@@ -9,8 +9,7 @@ import {
   AbstractFormGroup,
   ArrayControlsValue,
   ArrayListValueToControls,
-  FormArrayControlOptions,
-  FormArrayGroupOptions
+  FormArrayControlOptions
 } from '@rolster/forms';
 import { ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
@@ -40,10 +39,6 @@ export interface ReactArrayControlOptions<T = any>
   touched?: boolean;
 }
 
-export type ReactSubscriberControl<T = any> = (
-  options: ReactArrayControlOptions<T>
-) => void;
-
 export interface ReactArrayListOptions<
   C extends ReactArrayControls = ReactArrayControls
 > extends ReactArrayControlOptions<ArrayControlsValue<C>[]> {
@@ -51,13 +46,26 @@ export interface ReactArrayListOptions<
   valueToControls: ArrayListValueToControls<C>;
 }
 
+export type ReactArrayAction =
+  | 'focused'
+  | 'disabled'
+  | 'touched'
+  | 'value'
+  | 'validators'
+  | 'reset'
+  | 'controls';
+
 export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractArrayControl<T> {
-  clone(options: ReactArrayControlOptions<T>): ReactArrayControl<E, T>;
-  subscribe: (subscriber: ReactSubscriberControl<T>) => void;
+  subscribe: (subscriber: ReactArrayControlSubscriber<E, T>) => void;
   elementRef?: RefObject<E>;
   validators?: ValidatorFn<T>[];
 }
+
+export type ReactArrayControlSubscriber<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> = (action: ReactArrayAction, control: ReactArrayControl<E, T>) => void;
 
 export type ReactArrayVoid<
   E extends HTMLElement = HTMLElement,
@@ -81,15 +89,15 @@ export interface ReactArrayList<
 > extends ReactArrayControl<HTMLElement, ArrayControlsValue<C>[]>,
     AbstractArrayList<C> {}
 
-export type ReactSubscriberGroup<
-  C extends ReactArrayControls = ReactArrayControls,
-  R = any
-> = (options: FormArrayGroupOptions<C, R>) => void;
-
 export interface ReactArrayGroup<C extends ReactArrayControls, R = any>
   extends AbstractArrayGroup<C, R> {
-  subscribe: (subscriber: ReactSubscriberGroup<C, R>) => void;
+  subscribe: (subscriber: ReactArrayGroupSubscriber<C, R>) => void;
 }
+
+export type ReactArrayGroupSubscriber<C extends ReactArrayControls, R = any> = (
+  action: ReactArrayAction,
+  control: ReactArrayGroup<C, R>
+) => void;
 
 export interface ReactFormArray<
   C extends ReactArrayControls = ReactArrayControls,

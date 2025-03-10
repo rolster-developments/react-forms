@@ -1,4 +1,3 @@
-import { reduceControlsToArray } from '@rolster/forms/helpers';
 import { required } from '@rolster/validators/helpers';
 import React, { useEffect } from 'react';
 import {
@@ -48,15 +47,12 @@ export function App() {
     }
   });
 
-  useEffect(
-    () => {
-      console.log('Cambio en controles');
-    },
-    reduceControlsToArray(employees.controls, 'value')
-  );
+  useEffect(() => {
+    //console.log('Cambio de valores del formGroup', employees.value);
+  }, [employees.value]);
 
   function onLog(): void {
-    employees.reset();
+    console.log(employees.value);
   }
 
   function onNewPerson(): void {
@@ -64,11 +60,13 @@ export function App() {
       formArrayGroup({
         name: inputArrayControl<string>('', [required]),
         occupation: inputArrayControl<string>('', [required]),
-        phones: formArrayList<PhoneArrayControls>(({ country, number }) => ({
-          country: inputArrayControl(country),
-          number: inputArrayControl(number)
-        })),
-        salary: inputArrayControl(0)
+        salary: inputArrayControl(0),
+        phones: formArrayList<PhoneArrayControls>({
+          valueToControls: ({ country, number }) => ({
+            country: inputArrayControl(country),
+            number: inputArrayControl(number)
+          })
+        })
       })
     );
   }
@@ -84,7 +82,7 @@ export function App() {
     }
   }
 
-  function onValidator(): void {
+  function onRemoveValid(): void {
     employees.controls.superuser.setValue('Daniel Castillo');
     employees.controls.role.setValue('Ing de software');
     employees.controls.age.setValue(25);
@@ -224,7 +222,7 @@ export function App() {
         <button onClick={onLog}>Log</button>
         <button onClick={onNewPerson}>New Person</button>
         <button onClick={onNewPhone}>New Phone</button>
-        <button onClick={onValidator}>Remove valid</button>
+        <button onClick={onRemoveValid}>Remove valid</button>
       </div>
     </div>
   );

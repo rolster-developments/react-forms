@@ -1,22 +1,38 @@
 import { ArrayControlsValue, ArrayListValueToControls } from '@rolster/forms';
-import { controlsAllChecked, controlsToValue } from '@rolster/forms/helpers';
-import { ValidatorFn } from '@rolster/validators';
+import {
+  controlIsValid,
+  controlsAllChecked,
+  controlsToValue
+} from '@rolster/forms/helpers';
+import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
 import {
+  ReactArrayAction,
+  ReactArrayControl,
+  ReactArrayControlOptions,
   ReactArrayControls,
   ReactArrayList,
   ReactArrayListOptions
 } from '../types';
-import { RolsterReactArrayControl } from './form-array-control';
+import { RolsterArrayControl } from './form-array-control';
 
 type RolsterListOptions<C extends ReactArrayControls = ReactArrayControls> =
   Omit<ReactArrayListOptions<C>, 'value'>;
 
-export class RolsterArrayList<
+interface ArrayControlOptions<T = any> extends ReactArrayControlOptions<T> {
+  errors: ValidatorError<T>[];
+}
+
+interface Options<C extends ReactArrayControls = ReactArrayControls>
+  extends Partial<ArrayControlOptions<ArrayControlsValue<C>[]>> {
+  controls: C[];
+}
+
+class RolsterArrayList<
     E extends HTMLElement = HTMLElement,
     C extends ReactArrayControls = ReactArrayControls
   >
-  extends RolsterReactArrayControl<E, ArrayControlsValue<C>[]>
+  extends RolsterArrayControl<E, ArrayControlsValue<C>[]>
   implements ReactArrayList<C>
 {
   public readonly controls: C[];
@@ -30,16 +46,19 @@ export class RolsterArrayList<
   protected valueToControls: ArrayListValueToControls<C>;
 
   constructor(options: RolsterListOptions<C>) {
-    const value = options.controls.map((controls) => controlsToValue(controls));
+    const { controls, valueToControls, validators } = options;
 
-    super({ ...options, value });
+    const value = controls.map((controls) => controlsToValue(controls));
+    const errors = validators ? controlIsValid({ value, validators }) : [];
 
-    this.valueToControls = options.valueToControls;
-    this.controls = options.controls;
+    super({ ...options, errors, value });
+
+    this.valueToControls = valueToControls;
+    this.controls = controls;
 
     this.valid =
-      this.errors.length === 0 &&
-      this.controls.reduce(
+      errors.length === 0 &&
+      controls.reduce(
         (valid, controls) => valid && controlsAllChecked(controls, 'valid'),
         true
       );
@@ -47,62 +66,63 @@ export class RolsterArrayList<
     this.invalid = !this.valid;
     this.wrong = this.touched && this.invalid;
 
-    options.controls.forEach((controls) => {
-      this.subscribeControls(controls);
+    controls.forEach((controls) => {
+      this._subscribe(controls);
     });
   }
 
   public setValue(value: ArrayControlsValue<C>[]): void {
-    this.refresh({
+    this.refresh('controls', {
       controls: value.map((value) => this.valueToControls(value))
     });
   }
 
-  public clone(options: ReactArrayListOptions<C>): RolsterArrayList<E, C> {
-    return new RolsterArrayList(options);
-  }
-
   public push(controls: C): void {
-    this.refresh({
+    this.refresh('controls', {
       controls: [...this.controls, controls]
     });
   }
 
   public remove(controls: C): void {
-    this.refresh({
-      controls: this.controls.filter(
-        (currentControls) => currentControls !== controls
-      )
+    this.refresh('controls', {
+      controls: this.controls.filter((_controls) => _controls !== controls)
     });
   }
 
-  protected refresh(changes: Partial<ReactArrayListOptions<C>>): void {
-    super.refresh(changes);
+  protected builder(
+    options: Options<C>
+  ): ReactArrayControl<E, ArrayControlsValue<C>[]> {
+    return new RolsterArrayList({
+      ...this,
+      ...options,
+      valueToControls: this.valueToControls
+    });
   }
 
-  private subscribeControls(newControls: C): void {
-    Object.values(newControls).forEach((control) => {
-      control.subscribe((options) => {
-        const controls = this.controls.map((_controls) =>
-          _controls !== newControls
-            ? _controls
-            : Object.entries(newControls).reduce((controls, [key, control]) => {
-                (controls as any)[key] =
-                  control.uuid === options.uuid
-                    ? control.clone(options)
-                    : control;
+  protected refresh(action: ReactArrayAction, options: Options<C>): void {
+    console.log(action, options)
+    super.refresh(action, options);
+  }
 
+  private _subscribe(controls: C): void {
+    Object.values(controls).forEach((control) => {
+      control.subscribe((action, _control) => {
+        const _controls = this.controls.map((_controls) =>
+          _controls !== controls
+            ? _controls
+            : Object.entries(controls).reduce((controls, []) => {
                 return controls;
               }, {} as C)
         );
 
-        this.refresh({ controls });
+        this.refresh(action, { controls: _controls });
       });
     });
   }
 }
 
 interface ReactListOptions<C extends ReactArrayControls = ReactArrayControls> {
+  valueToControls: ArrayListValueToControls<C>;
   touched?: boolean;
   validators?: ValidatorFn<ArrayControlsValue<C>[] | undefined>[];
   value?: ArrayControlsValue<C>[] | undefined;
@@ -110,16 +130,12 @@ interface ReactListOptions<C extends ReactArrayControls = ReactArrayControls> {
 
 export function formArrayList<
   C extends ReactArrayControls = ReactArrayControls
->(
-  valueToControls: ArrayListValueToControls<C>,
-  options?: ReactListOptions<C>
-): ReactArrayList<C> {
+>(options: ReactListOptions<C>): ReactArrayList<C> {
   const value = options?.value || [];
 
   return new RolsterArrayList<HTMLElement, C>({
     ...options,
-    valueToControls,
-    controls: value.map((value) => valueToControls(value)),
+    controls: value.map((value) => options.valueToControls(value)),
     initialValue: value,
     uuid: uuid()
   });

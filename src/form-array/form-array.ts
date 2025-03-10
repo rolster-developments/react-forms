@@ -14,17 +14,17 @@ import {
 import { ValidatorError } from '@rolster/validators';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ReactArrayAction,
   ReactArrayControls,
   ReactArrayGroup,
-  ReactFormArray,
-  ReactSubscriberGroup
+  ReactArrayGroupSubscriber,
+  ReactFormArray
 } from '../types';
-import { RolsterArrayGroup } from './form-array-group';
 
-interface ArrayState<
+interface ReactArrayState<
   C extends ReactArrayControls,
-  R = any,
-  G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
+  R,
+  G extends ReactArrayGroup<C, R>
 > {
   controls: C[];
   dirties: boolean;
@@ -39,18 +39,11 @@ interface ArrayState<
   validators?: ValidatorArrayFn<C, R>[];
 }
 
-function errorsInArray<C extends ReactArrayControls, R>(
-  groups: ReactArrayGroup<C, R>[],
-  validators?: ValidatorArrayFn<C, R>[]
-): ValidatorError<any>[] {
-  return validators ? arrayIsValid({ groups, validators }) : [];
-}
-
-function validStateInArray<C extends ReactArrayControls, R>(
+function refactorForValid<C extends ReactArrayControls, R>(
   groups: ReactArrayGroup<C, R>[],
   validators?: ValidatorArrayFn<C, R>[]
 ) {
-  const errors = errorsInArray(groups, validators);
+  const errors = validators ? arrayIsValid({ groups, validators }) : [];
 
   return {
     errors,
@@ -58,17 +51,35 @@ function validStateInArray<C extends ReactArrayControls, R>(
   };
 }
 
-function replaceStateInArray<
+function refactorForGroups<
   C extends ReactArrayControls,
   R,
   G extends ReactArrayGroup<C, R>
 >(groups: G[], validators?: ValidatorArrayFn<C, R>[]) {
   return {
-    ...validStateInArray(groups, validators),
+    ...refactorForValid(groups, validators),
     groups,
     controls: groups.map(({ controls }) => controls),
     value: groups.map(({ controls }) => controlsToValue(controls))
   };
+}
+
+function refactorForControls<
+  C extends ReactArrayControls,
+  R,
+  G extends ReactArrayGroup<C, R>
+>(state: ReactArrayState<C, R, G>, groups: G[], action: ReactArrayAction) {
+  switch (action) {
+    case 'validators':
+      return refactorForValid(groups, state.validators);
+
+    case 'reset':
+    case 'value':
+      return refactorForGroups(groups, state.validators);
+
+    default:
+      return {};
+  }
 }
 
 export function useFormArray<
@@ -105,8 +116,8 @@ export function useFormArray<
   const groups = _options.groups || [];
   const initialValue = useRef(groups);
 
-  const [state, setState] = useState<ArrayState<C, R, G>>({
-    ...validStateInArray(groups, _options.validators),
+  const [state, setState] = useState<ReactArrayState<C, R, G>>({
+    ...refactorForValid(groups, _options.validators),
     controls: groups.map(({ controls }) => controls),
     dirty: false,
     dirties: false,
@@ -119,18 +130,18 @@ export function useFormArray<
   });
 
   useEffect(() => {
-    const subscriber: ReactSubscriberGroup<C, R> = (options) => {
-      setState((state) => ({
-        ...state,
-        ...replaceStateInArray(
-          state.groups.map((group) =>
-            group.uuid === options.uuid
-              ? new RolsterArrayGroup<C, R>(options)
-              : group
-          ) as G[],
-          state.validators
-        )
-      }));
+    const subscriber: ReactArrayGroupSubscriber<C, R> = (action, group) => {
+      //console.log('Change group', action, group);
+      setState((state) => {
+        const groups = state.groups.map((arrayGroup) =>
+          arrayGroup.uuid === group.uuid ? group : arrayGroup
+        ) as G[];
+
+        return {
+          ...state,
+          ...refactorForControls(state, groups, action)
+        };
+      });
     };
 
     state.groups.forEach((group) => {
@@ -149,14 +160,14 @@ export function useFormArray<
   const setValue = useCallback((groups: G[]) => {
     setState((state) => ({
       ...state,
-      ...replaceStateInArray(groups, state.validators)
+      ...refactorForGroups(groups, state.validators)
     }));
   }, []);
 
   const setInitialValue = useCallback((groups: G[]) => {
     setState((state) => ({
       ...state,
-      ...replaceStateInArray(groups, state.validators)
+      ...refactorForGroups(groups, state.validators)
     }));
 
     initialValue.current = groups;
@@ -165,38 +176,31 @@ export function useFormArray<
   const push = useCallback((group: G) => {
     setState((state) => ({
       ...state,
-      ...replaceStateInArray([...state.groups, group], state.validators)
+      ...refactorForGroups([...state.groups, group], state.validators)
     }));
   }, []);
 
   const merge = useCallback((groups: G[]) => {
     setState((state) => ({
       ...state,
-      ...replaceStateInArray([...state.groups, ...groups], state.validators)
+      ...refactorForGroups([...state.groups, ...groups], state.validators)
     }));
   }, []);
 
   const remove = useCallback(({ uuid }: G) => {
     setState((state) => ({
       ...state,
-      ...replaceStateInArray(
+      ...refactorForGroups(
         state.groups.filter((group) => group.uuid !== uuid),
         state.validators
       )
     }));
   }, []);
 
-  const reset = useCallback(() => {
-    setState((state) => ({
-      ...state,
-      ...replaceStateInArray(initialValue.current, state.validators)
-    }));
-  }, []);
-
   const setValidators = useCallback((validators?: ValidatorArrayFn<C, R>[]) => {
     setState((state) => ({
       ...state,
-      ...validStateInArray(state.groups, validators),
+      ...refactorForValid(state.groups, validators),
       validators
     }));
   }, []);
@@ -210,6 +214,13 @@ export function useFormArray<
     (keys: string[]) => rolsterSomeErrors(state.errors, keys),
     [state.errors]
   );
+
+  const reset = useCallback(() => {
+    setState((state) => ({
+      ...state,
+      ...refactorForGroups(initialValue.current, state.validators)
+    }));
+  }, []);
 
   return {
     ...state,
