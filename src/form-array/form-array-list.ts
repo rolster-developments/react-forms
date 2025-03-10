@@ -14,6 +14,7 @@ import {
   ReactArrayList,
   ReactArrayListOptions
 } from '../types';
+import { replaceControl } from '../utilities';
 import { RolsterArrayControl } from './form-array-control';
 
 type RolsterListOptions<C extends ReactArrayControls = ReactArrayControls> =
@@ -66,25 +67,25 @@ class RolsterArrayList<
     this.invalid = !this.valid;
     this.wrong = this.touched && this.invalid;
 
-    controls.forEach((controls) => {
-      this._subscribe(controls);
+    controls.forEach((reactControls) => {
+      this._subscribe(reactControls);
     });
   }
 
   public setValue(value: ArrayControlsValue<C>[]): void {
-    this.refresh('controls', {
+    this.refresh('list', {
       controls: value.map((value) => this.valueToControls(value))
     });
   }
 
   public push(controls: C): void {
-    this.refresh('controls', {
+    this.refresh('list', {
       controls: [...this.controls, controls]
     });
   }
 
   public remove(controls: C): void {
-    this.refresh('controls', {
+    this.refresh('list', {
       controls: this.controls.filter((_controls) => _controls !== controls)
     });
   }
@@ -92,7 +93,7 @@ class RolsterArrayList<
   protected builder(
     options: Options<C>
   ): ReactArrayControl<E, ArrayControlsValue<C>[]> {
-    return new RolsterArrayList({
+    return new RolsterArrayList<E, C>({
       ...this,
       ...options,
       valueToControls: this.valueToControls
@@ -100,22 +101,19 @@ class RolsterArrayList<
   }
 
   protected refresh(action: ReactArrayAction, options: Options<C>): void {
-    console.log(action, options)
     super.refresh(action, options);
   }
 
-  private _subscribe(controls: C): void {
-    Object.values(controls).forEach((control) => {
+  private _subscribe(reactControls: C): void {
+    Object.values(reactControls).forEach((control) => {
       control.subscribe((action, _control) => {
-        const _controls = this.controls.map((_controls) =>
-          _controls !== controls
+        const _reactControls = this.controls.map((_controls) =>
+          reactControls !== _controls
             ? _controls
-            : Object.entries(controls).reduce((controls, []) => {
-                return controls;
-              }, {} as C)
+            : replaceControl(reactControls, _control)
         );
 
-        this.refresh(action, { controls: _controls });
+        this.refresh(action, { controls: _reactControls });
       });
     });
   }

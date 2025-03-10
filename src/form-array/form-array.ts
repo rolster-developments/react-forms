@@ -74,11 +74,12 @@ function refactorForControls<
       return refactorForValid(groups, state.validators);
 
     case 'reset':
+    case 'list':
     case 'value':
       return refactorForGroups(groups, state.validators);
 
     default:
-      return {};
+      return { groups };
   }
 }
 
@@ -131,10 +132,9 @@ export function useFormArray<
 
   useEffect(() => {
     const subscriber: ReactArrayGroupSubscriber<C, R> = (action, group) => {
-      //console.log('Change group', action, group);
       setState((state) => {
-        const groups = state.groups.map((arrayGroup) =>
-          arrayGroup.uuid === group.uuid ? group : arrayGroup
+        const groups = state.groups.map((_group) =>
+          _group.uuid === group.uuid ? group : _group
         ) as G[];
 
         return {

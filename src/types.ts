@@ -53,7 +53,7 @@ export type ReactArrayAction =
   | 'value'
   | 'validators'
   | 'reset'
-  | 'controls';
+  | 'list';
 
 export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractArrayControl<T> {

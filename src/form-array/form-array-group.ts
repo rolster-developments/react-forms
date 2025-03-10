@@ -19,6 +19,7 @@ import {
   ReactArrayGroup,
   ReactArrayGroupSubscriber
 } from '../types';
+import { replaceControl } from '../utilities';
 
 interface ArrayGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,
@@ -75,6 +76,7 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
         value: controlsToValue(controls)
       };
 
+    case 'list':
     case 'value':
       return {
         ...refactorForValid(controls, group.validators),
@@ -151,17 +153,7 @@ class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
     this.validators = options.validators;
 
     const subscriber: ReactArrayControlSubscriber = (action, control) => {
-      console.log(action, control);
-      const controls = Object.entries(this.controls).reduce(
-        (controls, [key, arrayControl]) => {
-          if (arrayControl.uuid === control.uuid) {
-            (controls as any)[key] = control;
-          }
-
-          return controls;
-        },
-        this.controls
-      );
+      const controls = replaceControl(this.controls, control);
 
       this.refresh(action, {
         ...refactorForControls(this, controls, action),

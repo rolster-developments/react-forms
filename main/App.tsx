@@ -48,8 +48,8 @@ export function App() {
   });
 
   useEffect(() => {
-    //console.log('Cambio de valores del formGroup', employees.value);
-  }, [employees.value]);
+    console.log('Cambio de valores del Persons', employees.controls.persons.value);
+  }, [employees.controls.persons.value]);
 
   function onLog(): void {
     console.log(employees.value);
