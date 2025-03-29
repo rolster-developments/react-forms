@@ -72,9 +72,22 @@ class RolsterArrayList<
     });
   }
 
+  public setInitialValue(value: ArrayControlsValue<C>[]): void {
+    this.refresh('list', {
+      controls: value.map((value) => this.valueToControls(value)),
+      initialValue: value
+    });
+  }
+
   public setValue(value: ArrayControlsValue<C>[]): void {
     this.refresh('list', {
       controls: value.map((value) => this.valueToControls(value))
+    });
+  }
+
+  public reset(): void {
+    this.refresh('list', {
+      controls: this.initialValue.map((value) => this.valueToControls(value))
     });
   }
 
