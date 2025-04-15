@@ -103,25 +103,38 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   }
 
   public setInitialValue(value: T): void {
-    const { validators } = this;
+    if (value !== this.initialValue) {
+      const errors = this.validators
+        ? controlIsValid({ value, validators: this.validators })
+        : [];
 
-    const errors = validators ? controlIsValid({ value, validators }) : [];
-
-    this.refresh('value', { dirty: false, errors, initialValue: value, value });
+      this.refresh('value', {
+        dirty: false,
+        errors,
+        initialValue: value,
+        value
+      });
+    }
   }
 
   public setValue(value: T): void {
-    const { validators } = this;
+    if (value !== this.value) {
+      const errors = this.validators
+        ? controlIsValid({ value, validators: this.validators })
+        : [];
 
-    const errors = validators ? controlIsValid({ value, validators }) : [];
-
-    this.refresh('value', { dirty: true, errors, value });
+      this.refresh('value', {
+        dirty: true,
+        errors,
+        value
+      });
+    }
   }
 
   public setValidators(validators?: ValidatorFn<T>[] | undefined): void {
-    const { value } = this;
-
-    const errors = validators ? controlIsValid({ value, validators }) : [];
+    const errors = validators
+      ? controlIsValid({ value: this.value, validators })
+      : [];
 
     this.refresh('validators', { errors, validators });
   }
@@ -139,15 +152,18 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   }
 
   public reset(): void {
-    const { initialValue: value, validators } = this;
-
-    const errors = validators ? controlIsValid({ value, validators }) : [];
+    const errors = this.validators
+      ? controlIsValid({
+          value: this.initialValue,
+          validators: this.validators
+        })
+      : [];
 
     this.refresh('reset', {
       dirty: false,
       errors,
       touched: false,
-      value
+      value: this.initialValue
     });
   }
 
