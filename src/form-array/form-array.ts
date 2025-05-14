@@ -17,7 +17,6 @@ import {
   ReactArrayAction,
   ReactArrayControls,
   ReactArrayGroup,
-  ReactArrayGroupSubscriber,
   ReactFormArray
 } from '../types';
 
@@ -68,7 +67,7 @@ function refactorForControls<
   C extends ReactArrayControls,
   R,
   G extends ReactArrayGroup<C, R>
->(state: ReactArrayState<C, R, G>, groups: G[], action: ReactArrayAction) {
+>(action: ReactArrayAction, state: ReactArrayState<C, R, G>, groups: G[]) {
   switch (action) {
     case 'validators':
       return refactorForValid(groups, state.validators);
@@ -131,23 +130,26 @@ export function useFormArray<
   });
 
   useEffect(() => {
-    const subscriber: ReactArrayGroupSubscriber<C, R> = (action, group) => {
-      setState((state) => {
-        const groups = state.groups.map((_group) =>
-          _group.uuid === group.uuid ? group : _group
-        ) as G[];
-
-        return {
-          ...state,
-          ...refactorForControls(state, groups, action)
-        };
-      });
-    };
-
     state.groups.forEach((group) => {
       group.subscribe(subscriber);
     });
   }, [state.groups]);
+
+  const subscriber = useCallback(
+    (action: ReactArrayAction, group: ReactArrayGroup<C, R>) => {
+      setState((state) => {
+        const groups = state.groups.map((_group) => {
+          return _group.uuid === group.uuid ? group : _group;
+        }) as G[];
+
+        return {
+          ...state,
+          ...refactorForControls(action, state, groups)
+        };
+      });
+    },
+    []
+  );
 
   const disable = useCallback(() => {
     setState((state) => ({ ...state, disabled: true }));

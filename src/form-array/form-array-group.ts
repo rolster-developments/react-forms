@@ -51,9 +51,9 @@ function refactorForValid<C extends ReactArrayControls = ReactArrayControls>(
 }
 
 function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
-  group: BaseArrayGroup<C>,
-  controls: C,
-  action: ReactArrayAction
+  action: ReactArrayAction,
+  group: RolsterArrayGroup<C>,
+  controls: C
 ) {
   switch (action) {
     case 'focused':
@@ -90,8 +90,10 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
   }
 }
 
-class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
-  implements ReactArrayGroup<C, R>
+export class RolsterArrayGroup<
+  C extends ReactArrayControls = ReactArrayControls,
+  R = any
+> implements ReactArrayGroup<C, R>
 {
   public readonly uuid: string;
 
@@ -129,6 +131,8 @@ class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
 
   public readonly resource?: R;
 
+  private subscriberControl: ReactArrayControlSubscriber;
+
   private subscriber?: ReactArrayGroupSubscriber<C, R>;
 
   constructor(options: ArrayGroupOptions<C, R>) {
@@ -152,22 +156,22 @@ class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
     this.error = this.errors[0];
     this.validators = options.validators;
 
-    const subscriber: ReactArrayControlSubscriber = (action, control) => {
+    this.subscriberControl = (action, control) => {
       const controls = replaceControl(this.controls, control);
 
       this.refresh(action, {
-        ...refactorForControls(this, controls, action),
+        ...refactorForControls(action, this, controls),
         controls
       });
     };
-
-    Object.values(this.controls).forEach((control) => {
-      control.subscribe(subscriber);
-    });
   }
 
   public subscribe(subscriber: ReactArrayGroupSubscriber<C, R>): void {
     this.subscriber = subscriber;
+
+    Object.values(this.controls).forEach((control) => {
+      control.subscribe(this.subscriberControl);
+    });
   }
 
   public setValidators(validators: ValidatorGroupFn<C, any>[]): void {
@@ -179,14 +183,14 @@ class BaseArrayGroup<C extends ReactArrayControls = ReactArrayControls, R = any>
 
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
     this.subscriber &&
-      this.subscriber(action, new BaseArrayGroup({ ...this, ...options }));
+      this.subscriber(action, new RolsterArrayGroup({ ...this, ...options }));
   }
 }
 
-class RolsterArrayGroup<
+class ReactRolsterArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
-> extends BaseArrayGroup<C, R> {
+> extends RolsterArrayGroup<C, R> {
   constructor(options: FormArrayGroupOptions<C, R>) {
     const { controls, validators } = options;
 
@@ -225,7 +229,7 @@ export function formArrayGroup<
   options: ReactGroupOptions<C, R> | C,
   validators?: ValidatorGroupFn<C, R>[]
 ): ReactArrayGroup<C, R> {
-  return new RolsterArrayGroup({
+  return new ReactRolsterArrayGroup({
     ...createFormGroupOptions<C, ReactGroupOptions<C, R>>(options, validators),
     uuid: uuid()
   });

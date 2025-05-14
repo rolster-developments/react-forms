@@ -48,8 +48,8 @@ export function App() {
   });
 
   useEffect(() => {
-    console.log('Cambio de valores del Persons', employees.controls.persons.value);
-  }, [employees.controls.persons.value]);
+    //console.log('Cambio de valores del Persons', employees.value);
+  }, [employees.value]);
 
   function onLog(): void {
     console.log(employees.value);
@@ -86,6 +86,16 @@ export function App() {
     employees.controls.superuser.setValue('Daniel Castillo');
     employees.controls.role.setValue('Ing de software');
     employees.controls.age.setValue(25);
+  }
+
+  function onChangesMultiple(): void {
+    const person = employees.controls.persons.groups[0];
+
+    if (person) {
+      person.controls.name.setValue('Julio Trujillo');
+      person.controls.occupation.setValue('Ingeniero de sistemas');
+      person.controls.salary.setValue(2560);
+    }
   }
 
   return (
@@ -223,6 +233,7 @@ export function App() {
         <button onClick={onNewPerson}>New Person</button>
         <button onClick={onNewPhone}>New Phone</button>
         <button onClick={onRemoveValid}>Remove valid</button>
+        <button onClick={onChangesMultiple}>Changes multiple</button>
       </div>
     </div>
   );
