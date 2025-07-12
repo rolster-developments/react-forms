@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ReactArrayControls, ReactArrayGroup, ReactFormArray } from './types';
 
-interface ArrayFormGroupSelectProps<
+interface FormArrayGroupSelectProps<
   C extends ReactArrayControls = ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
@@ -9,7 +9,7 @@ interface ArrayFormGroupSelectProps<
   formArray: ReactFormArray<C, R, G>;
 }
 
-interface ArrayFormGroupSelect<
+interface FormArrayGroupSelect<
   C extends ReactArrayControls = ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
@@ -18,13 +18,13 @@ interface ArrayFormGroupSelect<
   formGroup?: G;
 }
 
-export function useArrayFormGroupSelect<
+export function useFormArrayGroupSelect<
   C extends ReactArrayControls = ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 >({
   formArray
-}: ArrayFormGroupSelectProps<C, R, G>): ArrayFormGroupSelect<C, R, G> {
+}: FormArrayGroupSelectProps<C, R, G>): FormArrayGroupSelect<C, R, G> {
   const [formSelect, setFormGroup] = useState<G>();
 
   const formGroup = useMemo(() => {
