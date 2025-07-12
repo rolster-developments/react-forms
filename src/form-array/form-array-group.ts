@@ -181,6 +181,10 @@ export class RolsterArrayGroup<
     });
   }
 
+  public setResource(resource: Undefined<R>): void {
+    this.refresh('resource', { resource });
+  }
+
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
     this.subscriber &&
       this.subscriber(action, new RolsterArrayGroup({ ...this, ...options }));

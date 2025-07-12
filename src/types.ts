@@ -53,7 +53,8 @@ export type ReactArrayAction =
   | 'value'
   | 'validators'
   | 'reset'
-  | 'list';
+  | 'list'
+  | 'resource';
 
 export interface ReactArrayControl<E extends HTMLElement = HTMLElement, T = any>
   extends AbstractArrayControl<T> {
@@ -91,6 +92,7 @@ export interface ReactArrayList<
 
 export interface ReactArrayGroup<C extends ReactArrayControls, R = any>
   extends AbstractArrayGroup<C, R> {
+  setResource(resource: Undefined<R>): void;
   subscribe: (subscriber: ReactArrayGroupSubscriber<C, R>) => void;
 }
 
