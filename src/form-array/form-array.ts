@@ -114,7 +114,8 @@ export function useFormArray<
   );
 
   const groups = _options.groups || [];
-  const initialValue = useRef(groups);
+  const _value = useRef(groups);
+  const mapGroups = useRef<Map<string, G>>(new Map());
 
   const [state, setState] = useState<ReactArrayState<C, R, G>>({
     ...refactorForValid(groups, _options.validators),
@@ -130,7 +131,10 @@ export function useFormArray<
   });
 
   useEffect(() => {
+    mapGroups.current.clear();
+
     state.groups.forEach((group) => {
+      mapGroups.current.set(group.uuid, group);
       group.subscribe(subscriber);
     });
   }, [state.groups]);
@@ -172,7 +176,7 @@ export function useFormArray<
       ...refactorForGroups(groups, state.validators)
     }));
 
-    initialValue.current = groups;
+    _value.current = groups;
   }, []);
 
   const push = useCallback((group: G) => {
@@ -199,6 +203,13 @@ export function useFormArray<
     }));
   }, []);
 
+  const findByUuid = useCallback(
+    (uuid: string) => {
+      return mapGroups.current.get(uuid);
+    },
+    [state.groups]
+  );
+
   const setValidators = useCallback((validators?: ValidatorArrayFn<C, R>[]) => {
     setState((state) => ({
       ...state,
@@ -220,7 +231,7 @@ export function useFormArray<
   const reset = useCallback(() => {
     setState((state) => ({
       ...state,
-      ...refactorForGroups(initialValue.current, state.validators)
+      ...refactorForGroups(_value.current, state.validators)
     }));
   }, []);
 
@@ -230,6 +241,7 @@ export function useFormArray<
     enable,
     enabled: !state.disabled,
     error: state.errors[0],
+    findByUuid,
     hasError,
     invalid: !state.valid,
     merge,

@@ -213,10 +213,19 @@ class ReactRolsterArrayGroup<
   }
 }
 
-type ReactGroupOptions<
+interface ReactGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
-> = Omit<FormArrayGroupOptions<C, R>, 'uuid'>;
+> extends Omit<FormArrayGroupOptions<C, R>, 'uuid'> {
+  uuid?: string;
+}
+
+function groupIsOptions<
+  C extends ReactArrayControls,
+  O extends ReactGroupOptions<C>
+>(options: any): options is O {
+  return typeof options === 'object' && 'controls' in options;
+}
 
 export function formArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
@@ -233,8 +242,10 @@ export function formArrayGroup<
   options: ReactGroupOptions<C, R> | C,
   validators?: ValidatorGroupFn<C, R>[]
 ): ReactArrayGroup<C, R> {
+  const groupUuid = groupIsOptions(options) ? options.uuid || uuid() : uuid();
+
   return new ReactRolsterArrayGroup({
     ...createFormGroupOptions<C, ReactGroupOptions<C, R>>(options, validators),
-    uuid: uuid()
+    uuid: groupUuid
   });
 }
