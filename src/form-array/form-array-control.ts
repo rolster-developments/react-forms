@@ -201,14 +201,14 @@ function rolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>(
   options?: ReactControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
 ): ReactArrayControl<E, T> {
-  const _options = createFormControlOptions<T, ReactControlOptions<T>>(
+  const formControl = createFormControlOptions<T, ReactControlOptions<T>>(
     options,
     validators
   );
 
   return new ReactRolsterArrayControl({
-    ..._options,
-    initialValue: _options.value,
+    ...formControl,
+    initialValue: formControl.value,
     uuid: uuid()
   });
 }

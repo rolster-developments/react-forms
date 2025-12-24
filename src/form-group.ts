@@ -50,12 +50,10 @@ export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C> | C,
   validators?: ValidatorGroupFn<C>[]
 ): ReactGroup<C> {
-  const _options = createFormGroupOptions<C, FormGroupOptions<C>>(
+  const formGroup = createFormGroupOptions<C, FormGroupOptions<C>>(
     options,
     validators
   );
-
-  const { controls } = _options;
 
   const firstEffects = useRef({
     dirty: true,
@@ -65,14 +63,14 @@ export function useFormGroup<C extends ReactControls>(
   });
 
   const [state, setState] = useState<GroupState<C>>({
-    ...refactorForValid(controls, _options.validators),
-    controls,
-    dirties: controlsAllChecked(controls, 'dirty'),
-    dirty: controlsPartialChecked(controls, 'dirty'),
-    touched: controlsPartialChecked(controls, 'touched'),
-    toucheds: controlsAllChecked(controls, 'touched'),
-    value: controlsToValue(controls),
-    validators: _options.validators
+    ...refactorForValid(formGroup.controls, formGroup.validators),
+    controls: formGroup.controls,
+    dirties: controlsAllChecked(formGroup.controls, 'dirty'),
+    dirty: controlsPartialChecked(formGroup.controls, 'dirty'),
+    touched: controlsPartialChecked(formGroup.controls, 'touched'),
+    toucheds: controlsAllChecked(formGroup.controls, 'touched'),
+    value: controlsToValue(formGroup.controls),
+    validators: formGroup.validators
   });
 
   useEffect(
@@ -80,29 +78,29 @@ export function useFormGroup<C extends ReactControls>(
       if (!firstEffects.current.value) {
         setState((state) => ({
           ...state,
-          ...refactorForValid(controls, state.validators),
-          controls,
-          value: controlsToValue(controls)
+          ...refactorForValid(formGroup.controls, state.validators),
+          controls: formGroup.controls,
+          value: controlsToValue(formGroup.controls)
         }));
       } else {
         firstEffects.current.value = false;
       }
     },
-    reduceControlsToArray(controls, 'value')
+    reduceControlsToArray(formGroup.controls, 'value')
   );
 
   useEffect(() => {
     if (!firstEffects.current.disabledFocused) {
       setState((state) => ({
         ...state,
-        controls
+        controls: formGroup.controls
       }));
     } else {
       firstEffects.current.disabledFocused = false;
     }
   }, [
-    ...reduceControlsToArray(controls, 'disabled'),
-    ...reduceControlsToArray(controls, 'focused' as any)
+    ...reduceControlsToArray(formGroup.controls, 'disabled'),
+    ...reduceControlsToArray(formGroup.controls, 'focused' as any)
   ]);
 
   useEffect(
@@ -110,15 +108,15 @@ export function useFormGroup<C extends ReactControls>(
       if (!firstEffects.current.dirty) {
         setState((state) => ({
           ...state,
-          controls,
-          dirty: controlsPartialChecked(controls, 'dirty'),
-          dirties: controlsAllChecked(controls, 'dirty')
+          controls: formGroup.controls,
+          dirty: controlsPartialChecked(formGroup.controls, 'dirty'),
+          dirties: controlsAllChecked(formGroup.controls, 'dirty')
         }));
       } else {
         firstEffects.current.dirty = false;
       }
     },
-    reduceControlsToArray(controls, 'dirty')
+    reduceControlsToArray(formGroup.controls, 'dirty')
   );
 
   useEffect(
@@ -126,15 +124,15 @@ export function useFormGroup<C extends ReactControls>(
       if (!firstEffects.current.touched) {
         setState((state) => ({
           ...state,
-          controls,
-          touched: controlsPartialChecked(controls, 'touched'),
-          toucheds: controlsAllChecked(controls, 'touched')
+          controls: formGroup.controls,
+          touched: controlsPartialChecked(formGroup.controls, 'touched'),
+          toucheds: controlsAllChecked(formGroup.controls, 'touched')
         }));
       } else {
         firstEffects.current.touched = false;
       }
     },
-    reduceControlsToArray(controls, 'touched')
+    reduceControlsToArray(formGroup.controls, 'touched')
   );
 
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
@@ -145,7 +143,7 @@ export function useFormGroup<C extends ReactControls>(
   }, []);
 
   const reset = useCallback(() => {
-    Object.values(controls).forEach((control) => {
+    Object.values(formGroup.controls).forEach((control) => {
       control.reset();
     });
   }, []);

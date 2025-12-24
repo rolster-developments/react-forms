@@ -15,25 +15,23 @@ type TextRefOptions = InputRefOptions<string>;
 type NumberRefOptions = InputRefOptions<number>;
 
 function useInputRefControl<T = any>(options: ReactRefOptions<T>) {
-  const control = useInputControl(options);
+  const formRef = useInputControl(options);
 
   useEffect(() => {
-    const { elementRef } = control;
-
-    elementRef?.current?.addEventListener('focus', () => {
-      control.focus();
+    formRef.elementRef?.current?.addEventListener('focus', () => {
+      formRef.focus();
     });
 
-    elementRef?.current?.addEventListener('blur', () => {
-      control.blur();
+    formRef.elementRef?.current?.addEventListener('blur', () => {
+      formRef.blur();
     });
 
-    elementRef?.current?.addEventListener('change', ({ target }) => {
-      options.setValue(control, (target as HTMLInputElement).value);
+    formRef.elementRef?.current?.addEventListener('change', ({ target }) => {
+      options.setValue(formRef, (target as HTMLInputElement).value);
     });
   }, []);
 
-  return control;
+  return formRef;
 }
 
 export function useTextRefControl(): ReactInputControl<string>;

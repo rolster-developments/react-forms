@@ -34,21 +34,21 @@ function useControl<E extends HTMLElement, T = any>(
   options?: ReactControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T> {
-  const _options = createFormControlOptions<T, ReactControlOptions<T>>(
+  const formControl = createFormControlOptions<T, ReactControlOptions<T>>(
     options,
     validators
   );
 
-  const initialValue = useRef<T>(_options.value);
+  const initialValue = useRef<T>(formControl.value);
 
   const [state, setState] = useState<ControlState<T>>({
     dirty: false,
     disabled: false,
-    errors: errorsInControl(_options.value, _options.validators),
+    errors: errorsInControl(formControl.value, formControl.validators),
     focused: false,
-    touched: !!_options.touched,
-    value: _options.value,
-    validators: _options.validators
+    touched: !!formControl.touched,
+    value: formControl.value,
+    validators: formControl.validators
   });
 
   const elementRef = useRef<E>(null);
