@@ -108,17 +108,17 @@ export function useFormArray<
   options?: FormArrayOptions<C, R, G> | ReactArrayGroup<C, R>[],
   validators?: ValidatorArrayFn<C, R>[]
 ): ReactFormArray<C, R, G> {
-  const _options = createFormArrayOptions<C, R, G, FormArrayOptions<C, R, G>>(
+  const formArray = createFormArrayOptions<C, R, G, FormArrayOptions<C, R, G>>(
     options,
     validators
   );
 
-  const groups = _options.groups || [];
-  const _value = useRef(groups);
-  const mapGroups = useRef<Map<string, G>>(new Map());
+  const groups = formArray.groups || [];
+  const value = useRef(groups);
+  const formGroups = useRef<Map<string, G>>(new Map());
 
   const [state, setState] = useState<ReactArrayState<C, R, G>>({
-    ...refactorForValid(groups, _options.validators),
+    ...refactorForValid(groups, formArray.validators),
     controls: groups.map(({ controls }) => controls),
     dirty: false,
     dirties: false,
@@ -127,14 +127,14 @@ export function useFormArray<
     touched: false,
     toucheds: false,
     value: groups.map(({ controls }) => controlsToValue(controls)),
-    validators: _options.validators
+    validators: formArray.validators
   });
 
   useEffect(() => {
-    mapGroups.current.clear();
+    formGroups.current.clear();
 
     state.groups.forEach((group) => {
-      mapGroups.current.set(group.uuid, group);
+      formGroups.current.set(group.uuid, group);
       group.subscribe(subscriber);
     });
   }, [state.groups]);
@@ -176,7 +176,7 @@ export function useFormArray<
       ...refactorForGroups(groups, state.validators)
     }));
 
-    _value.current = groups;
+    value.current = groups;
   }, []);
 
   const push = useCallback((group: G) => {
@@ -205,7 +205,7 @@ export function useFormArray<
 
   const findByUuid = useCallback(
     (uuid: string) => {
-      return mapGroups.current.get(uuid);
+      return formGroups.current.get(uuid);
     },
     [state.groups]
   );
@@ -231,7 +231,7 @@ export function useFormArray<
   const reset = useCallback(() => {
     setState((state) => ({
       ...state,
-      ...refactorForGroups(_value.current, state.validators)
+      ...refactorForGroups(value.current, state.validators)
     }));
   }, []);
 
