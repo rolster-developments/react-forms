@@ -113,21 +113,22 @@ export function useFormArray<
     validators
   );
 
-  const groups = formArray.groups || [];
-  const value = useRef(groups);
+  const defaultValue = useRef(formArray.groups || []);
   const formGroups = useRef<Map<string, G>>(new Map());
 
   const [state, setState] = useState<ReactArrayState<C, R, G>>(() => {
     return {
-      ...refactorForValid(groups, formArray.validators),
-      controls: groups.map(({ controls }) => controls),
+      ...refactorForValid(defaultValue.current, formArray.validators),
+      controls: defaultValue.current.map(({ controls }) => controls),
       dirty: false,
       dirties: false,
       disabled: false,
-      groups,
+      groups: defaultValue.current,
       touched: false,
       toucheds: false,
-      value: groups.map(({ controls }) => controlsToValue(controls)),
+      value: defaultValue.current.map(({ controls }) =>
+        controlsToValue(controls)
+      ),
       validators: formArray.validators
     };
   });
@@ -172,13 +173,13 @@ export function useFormArray<
     }));
   }, []);
 
-  const setInitialValue = useCallback((groups: G[]) => {
+  const setDefaultValue = useCallback((groups: G[]) => {
     setState((state) => ({
       ...state,
       ...refactorForGroups(groups, state.validators)
     }));
 
-    value.current = groups;
+    defaultValue.current = groups;
   }, []);
 
   const push = useCallback((group: G) => {
@@ -237,7 +238,7 @@ export function useFormArray<
   const reset = useCallback(() => {
     setState((state) => ({
       ...state,
-      ...refactorForGroups(value.current, state.validators)
+      ...refactorForGroups(defaultValue.current, state.validators)
     }));
   }, []);
 
@@ -256,7 +257,7 @@ export function useFormArray<
     push,
     remove,
     reset,
-    setInitialValue,
+    setDefaultValue,
     setValidators,
     setValue,
     someErrors,
