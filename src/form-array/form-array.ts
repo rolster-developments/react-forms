@@ -117,17 +117,19 @@ export function useFormArray<
   const value = useRef(groups);
   const formGroups = useRef<Map<string, G>>(new Map());
 
-  const [state, setState] = useState<ReactArrayState<C, R, G>>({
-    ...refactorForValid(groups, formArray.validators),
-    controls: groups.map(({ controls }) => controls),
-    dirty: false,
-    dirties: false,
-    disabled: false,
-    groups,
-    touched: false,
-    toucheds: false,
-    value: groups.map(({ controls }) => controlsToValue(controls)),
-    validators: formArray.validators
+  const [state, setState] = useState<ReactArrayState<C, R, G>>(() => {
+    return {
+      ...refactorForValid(groups, formArray.validators),
+      controls: groups.map(({ controls }) => controls),
+      dirty: false,
+      dirties: false,
+      disabled: false,
+      groups,
+      touched: false,
+      toucheds: false,
+      value: groups.map(({ controls }) => controlsToValue(controls)),
+      validators: formArray.validators
+    };
   });
 
   useEffect(() => {
@@ -142,8 +144,8 @@ export function useFormArray<
   const subscriber = useCallback(
     (action: ReactArrayAction, group: ReactArrayGroup<C, R>) => {
       setState((state) => {
-        const groups = state.groups.map((_group) => {
-          return _group.uuid === group.uuid ? group : _group;
+        const groups = state.groups.map((currentGroup) => {
+          return currentGroup.uuid === group.uuid ? group : currentGroup;
         }) as G[];
 
         return {
@@ -219,12 +221,16 @@ export function useFormArray<
   }, []);
 
   const hasError = useCallback(
-    (key: string) => rolsterHasError(state.errors, key),
+    (key: string) => {
+      return rolsterHasError(state.errors, key);
+    },
     [state.errors]
   );
 
   const someErrors = useCallback(
-    (keys: string[]) => rolsterSomeErrors(state.errors, keys),
+    (keys: string[]) => {
+      return rolsterSomeErrors(state.errors, keys);
+    },
     [state.errors]
   );
 

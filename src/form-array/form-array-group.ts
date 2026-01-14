@@ -203,12 +203,12 @@ class ReactRolsterArrayGroup<
     super({
       ...options,
       errors,
-      value: controlsToValue(controls),
       dirties: controlsAllChecked(controls, 'dirty'),
       dirty: controlsPartialChecked(controls, 'dirty'),
       touched: controlsPartialChecked(controls, 'touched'),
       toucheds: controlsAllChecked(controls, 'touched'),
-      valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+      valid: errors.length === 0 && controlsAllChecked(controls, 'valid'),
+      value: controlsToValue(controls)
     });
   }
 }

@@ -49,7 +49,7 @@ class RolsterArrayList<
   constructor(options: RolsterListOptions<C>) {
     const { controls, valueToControls, validators } = options;
 
-    const value = controls.map((controls) => controlsToValue(controls));
+    const value = controls.map(controlsToValue);
     const errors = validators ? controlIsValid({ value, validators }) : [];
 
     super({ ...options, errors, value });
@@ -72,22 +72,31 @@ class RolsterArrayList<
     });
   }
 
-  public setInitialValue(value: ArrayControlsValue<C>[]): void {
+  public setDefaultValue(value: ArrayControlsValue<C>[]): void {
     this.refresh('list', {
-      controls: value.map((value) => this.valueToControls(value)),
-      initialValue: value
+      controls: value.map(this.valueToControls),
+      defaultValue: value
+    });
+  }
+
+  public setStartValue(value: ArrayControlsValue<C>[]): void {
+    this.refresh('list', {
+      controls: value.map(this.valueToControls)
     });
   }
 
   public setValue(value: ArrayControlsValue<C>[]): void {
     this.refresh('list', {
-      controls: value.map((value) => this.valueToControls(value))
+      controls: value.map(this.valueToControls),
+      dirty: true
     });
   }
 
   public reset(): void {
     this.refresh('list', {
-      controls: this.initialValue.map((value) => this.valueToControls(value))
+      controls: this.defaultValue.map(this.valueToControls),
+      dirty: false,
+      touched: false
     });
   }
 
@@ -147,7 +156,7 @@ export function formArrayList<
   return new RolsterArrayList<HTMLElement, C>({
     ...options,
     controls: value.map((value) => options.valueToControls(value)),
-    initialValue: value,
+    defaultValue: value,
     uuid: uuid()
   });
 }

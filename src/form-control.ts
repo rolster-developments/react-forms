@@ -39,16 +39,18 @@ function useControl<E extends HTMLElement, T = any>(
     validators
   );
 
-  const initialValue = useRef<T>(formControl.value);
+  const defaultValue = useRef<T>(formControl.value);
 
-  const [state, setState] = useState<ControlState<T>>({
-    dirty: false,
-    disabled: false,
-    errors: errorsInControl(formControl.value, formControl.validators),
-    focused: false,
-    touched: !!formControl.touched,
-    value: formControl.value,
-    validators: formControl.validators
+  const [state, setState] = useState<ControlState<T>>(() => {
+    return {
+      dirty: false,
+      disabled: false,
+      errors: errorsInControl(formControl.value, formControl.validators),
+      focused: false,
+      touched: !!formControl.touched,
+      value: formControl.value,
+      validators: formControl.validators
+    };
   });
 
   const elementRef = useRef<E>(null);
@@ -73,12 +75,19 @@ function useControl<E extends HTMLElement, T = any>(
     setState((state) => ({ ...state, touched: true }));
   }, []);
 
-  const setInitialValue = useCallback((value: T) => {
-    initialValue.current = value;
+  const setDefaultValue = useCallback((value: T) => {
+    defaultValue.current = value;
 
     setState((state) => ({
       ...state,
-      dirty: true,
+      errors: errorsInControl(value, state.validators),
+      value
+    }));
+  }, []);
+
+  const setStartValue = useCallback((value: T) => {
+    setState((state) => ({
+      ...state,
       errors: errorsInControl(value, state.validators),
       value
     }));
@@ -105,19 +114,23 @@ function useControl<E extends HTMLElement, T = any>(
     setState((state) => ({
       ...state,
       dirty: false,
-      errors: errorsInControl(initialValue.current, state.validators),
-      value: initialValue.current,
+      errors: errorsInControl(defaultValue.current, state.validators),
+      value: defaultValue.current,
       touched: false
     }));
   }, []);
 
   const hasError = useCallback(
-    (key: string) => rolsterHasError(state.errors, key),
+    (key: string) => {
+      return rolsterHasError(state.errors, key);
+    },
     [state.errors]
   );
 
   const someErrors = useCallback(
-    (keys: string[]) => rolsterSomeErrors(state.errors, keys),
+    (keys: string[]) => {
+      return rolsterSomeErrors(state.errors, keys);
+    },
     [state.errors]
   );
 
@@ -136,7 +149,8 @@ function useControl<E extends HTMLElement, T = any>(
     invalid: !valid,
     pristine: !state.dirty,
     reset,
-    setInitialValue,
+    setDefaultValue,
+    setStartValue,
     setValidators,
     setValue,
     someErrors,

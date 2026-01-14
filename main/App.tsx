@@ -47,11 +47,9 @@ export function App() {
     }
   });
 
-  useEffect(() => {
-    //console.log('Cambio de valores del Persons', employees.value);
-  }, [employees.value]);
-
   function onLog(): void {
+    console.log(employees.dirty);
+    console.log(employees.dirties);
     console.log(employees.value);
   }
 

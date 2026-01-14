@@ -27,7 +27,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   public readonly value: T;
 
-  public readonly initialValue: T;
+  public readonly defaultValue: T;
 
   public readonly dirty: boolean;
 
@@ -63,8 +63,8 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   constructor(options: ArrayControlOptions<T>) {
     this.uuid = options.uuid;
+    this.defaultValue = options.defaultValue;
     this.value = options.value;
-    this.initialValue = options.initialValue;
     this.focused = !!options.focused;
     this.unfocused = !this.focused;
     this.touched = !!options.touched;
@@ -102,18 +102,23 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
     this.untouched && this.refresh('touched', { touched: true });
   }
 
-  public setInitialValue(value: T): void {
-    if (value !== this.initialValue) {
+  public setDefaultValue(value: T): void {
+    if (value !== this.defaultValue) {
       const errors = this.validators
         ? controlIsValid({ value, validators: this.validators })
         : [];
 
-      this.refresh('value', {
-        dirty: false,
-        errors,
-        initialValue: value,
-        value
-      });
+      this.refresh('value', { errors, defaultValue: value, value });
+    }
+  }
+
+  public setStartValue(value: T): void {
+    if (value !== this.value) {
+      const errors = this.validators
+        ? controlIsValid({ value, validators: this.validators })
+        : [];
+
+      this.refresh('value', { errors, value });
     }
   }
 
@@ -123,11 +128,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
         ? controlIsValid({ value, validators: this.validators })
         : [];
 
-      this.refresh('value', {
-        dirty: true,
-        errors,
-        value
-      });
+      this.refresh('value', { dirty: true, errors, value });
     }
   }
 
@@ -154,7 +155,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   public reset(): void {
     const errors = this.validators
       ? controlIsValid({
-          value: this.initialValue,
+          value: this.defaultValue,
           validators: this.validators
         })
       : [];
@@ -163,7 +164,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
       dirty: false,
       errors,
       touched: false,
-      value: this.initialValue
+      value: this.defaultValue
     });
   }
 
@@ -208,7 +209,7 @@ function rolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>(
 
   return new ReactRolsterArrayControl({
     ...formControl,
-    initialValue: formControl.value,
+    defaultValue: formControl.value,
     uuid: uuid()
   });
 }

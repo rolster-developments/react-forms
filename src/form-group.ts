@@ -6,13 +6,11 @@ import {
 import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
   controlsAllChecked,
-  controlsPartialChecked,
   controlsToValue,
-  groupIsValid,
-  reduceControlsToArray
+  groupIsValid
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './types';
 
 interface GroupState<C extends ReactControls> {
@@ -27,6 +25,13 @@ interface GroupState<C extends ReactControls> {
   validators?: ValidatorGroupFn<C>[];
 }
 
+interface GroupStatus {
+  dirty: boolean[];
+  touched: boolean[];
+  value: any[];
+  visual: boolean[];
+}
+
 function refactorForValid<C extends ReactControls>(
   controls: C,
   validators?: ValidatorGroupFn<C>[]
@@ -37,6 +42,14 @@ function refactorForValid<C extends ReactControls>(
     errors,
     valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
   };
+}
+
+function checkAllSuccess(status: boolean[]): boolean {
+  return status.reduce((success, status) => success && status, true);
+}
+
+function checkPartialSuccess(status: boolean[]): boolean {
+  return status.reduce((success, status) => success || status, false);
 }
 
 export function useFormGroup<C extends ReactControls>(
@@ -55,85 +68,97 @@ export function useFormGroup<C extends ReactControls>(
     validators
   );
 
-  const firstEffects = useRef({
-    dirty: true,
-    disabledFocused: true,
-    touched: true,
-    value: true
+  const formInitialized = useRef({
+    dirty: false,
+    touched: false,
+    value: false,
+    visual: false
   });
 
-  const [state, setState] = useState<GroupState<C>>({
-    ...refactorForValid(formGroup.controls, formGroup.validators),
-    controls: formGroup.controls,
-    dirties: controlsAllChecked(formGroup.controls, 'dirty'),
-    dirty: controlsPartialChecked(formGroup.controls, 'dirty'),
-    touched: controlsPartialChecked(formGroup.controls, 'touched'),
-    toucheds: controlsAllChecked(formGroup.controls, 'touched'),
-    value: controlsToValue(formGroup.controls),
-    validators: formGroup.validators
-  });
+  const formGroupStatus = useMemo<GroupStatus>(() => {
+    const dirty: boolean[] = [];
+    const touched: boolean[] = [];
+    const value: any[] = [];
+    const visual: boolean[] = [];
 
-  useEffect(
-    () => {
-      if (!firstEffects.current.value) {
-        setState((state) => ({
-          ...state,
-          ...refactorForValid(formGroup.controls, state.validators),
-          controls: formGroup.controls,
-          value: controlsToValue(formGroup.controls)
-        }));
-      } else {
-        firstEffects.current.value = false;
-      }
-    },
-    reduceControlsToArray(formGroup.controls, 'value')
-  );
+    Object.values(formGroup.controls).forEach((control) => {
+      dirty.push(control.dirty);
+      touched.push(control.touched);
+      value.push(control.value);
+      visual.push(control.disabled);
+      visual.push((control as any).focused);
+    });
+
+    return {
+      dirty,
+      touched,
+      value,
+      visual
+    };
+  }, [formGroup.controls]);
+
+  const [state, setState] = useState<GroupState<C>>(() => {
+    return {
+      ...refactorForValid(formGroup.controls, formGroup.validators),
+      controls: formGroup.controls,
+      dirties: checkAllSuccess(formGroupStatus.dirty),
+      dirty: checkPartialSuccess(formGroupStatus.dirty),
+      touched: checkPartialSuccess(formGroupStatus.touched),
+      toucheds: checkAllSuccess(formGroupStatus.touched),
+      validators: formGroup.validators,
+      value: controlsToValue(formGroup.controls)
+    };
+  });
 
   useEffect(() => {
-    if (!firstEffects.current.disabledFocused) {
+    if (formInitialized.current.value) {
+      setState((state) => ({
+        ...state,
+        ...refactorForValid(formGroup.controls, state.validators),
+        controls: formGroup.controls,
+        value: controlsToValue(formGroup.controls)
+      }));
+    } else {
+      formInitialized.current.value = true;
+    }
+  }, formGroupStatus.value);
+
+  useEffect(() => {
+    if (formInitialized.current.dirty) {
+      setState((state) => ({
+        ...state,
+        controls: formGroup.controls,
+        dirty: checkPartialSuccess(formGroupStatus.dirty),
+        dirties: checkAllSuccess(formGroupStatus.dirty)
+      }));
+    } else {
+      formInitialized.current.dirty = true;
+    }
+  }, formGroupStatus.dirty);
+
+  useEffect(() => {
+    if (formInitialized.current.touched) {
+      setState((state) => ({
+        ...state,
+        controls: formGroup.controls,
+        touched: checkPartialSuccess(formGroupStatus.touched),
+        toucheds: checkAllSuccess(formGroupStatus.touched)
+      }));
+    } else {
+      formInitialized.current.touched = true;
+    }
+  }, formGroupStatus.touched);
+
+  useEffect(() => {
+    if (formInitialized.current.visual) {
       setState((state) => ({
         ...state,
         controls: formGroup.controls
       }));
     } else {
-      firstEffects.current.disabledFocused = false;
+      formInitialized.current.visual = true;
     }
-  }, [
-    ...reduceControlsToArray(formGroup.controls, 'disabled'),
-    ...reduceControlsToArray(formGroup.controls, 'focused' as any)
-  ]);
-
-  useEffect(
-    () => {
-      if (!firstEffects.current.dirty) {
-        setState((state) => ({
-          ...state,
-          controls: formGroup.controls,
-          dirty: controlsPartialChecked(formGroup.controls, 'dirty'),
-          dirties: controlsAllChecked(formGroup.controls, 'dirty')
-        }));
-      } else {
-        firstEffects.current.dirty = false;
-      }
-    },
-    reduceControlsToArray(formGroup.controls, 'dirty')
-  );
-
-  useEffect(
-    () => {
-      if (!firstEffects.current.touched) {
-        setState((state) => ({
-          ...state,
-          controls: formGroup.controls,
-          touched: controlsPartialChecked(formGroup.controls, 'touched'),
-          toucheds: controlsAllChecked(formGroup.controls, 'touched')
-        }));
-      } else {
-        firstEffects.current.touched = false;
-      }
-    },
-    reduceControlsToArray(formGroup.controls, 'touched')
-  );
+  }, formGroupStatus.visual);
 
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
     setState((state) => ({

@@ -32,7 +32,7 @@ export type ReactInputVoid<T = any> = ReactFormVoid<HTMLInputElement, T>;
 
 export interface ReactArrayControlOptions<T = any>
   extends FormArrayControlOptions<T> {
-  initialValue: T;
+  defaultValue: T;
   dirty?: boolean;
   disabled?: boolean;
   focused?: boolean;
