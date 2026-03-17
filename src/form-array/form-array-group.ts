@@ -3,12 +3,12 @@ import {
   FormArrayGroupOptions,
   ValidatorGroupFn
 } from '@rolster/forms';
-import { createFormGroupOptions } from '@rolster/forms/arguments';
+import { createFormGroupOptions } from '@rolster/forms/helpers';
 import {
-  controlsAllChecked,
-  controlsPartialChecked,
   controlsToValue,
-  groupIsValid
+  formGroupIsValid,
+  verifyAllTrueInControls,
+  verifyAnyTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
@@ -42,11 +42,11 @@ function refactorForValid<C extends ReactArrayControls = ReactArrayControls>(
   controls: C,
   validators?: ValidatorGroupFn<C>[]
 ) {
-  const errors = validators ? groupIsValid({ controls, validators }) : [];
+  const errors = validators ? formGroupIsValid({ controls, validators }) : [];
 
   return {
     errors,
-    valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+    valid: errors.length === 0 && verifyAllTrueInControls(controls, 'valid')
   };
 }
 
@@ -59,8 +59,8 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
     case 'focused':
     case 'touched':
       return {
-        touched: controlsPartialChecked(controls, 'touched'),
-        toucheds: controlsAllChecked(controls, 'touched')
+        touched: verifyAnyTrueInControls(controls, 'touched'),
+        toucheds: verifyAllTrueInControls(controls, 'touched')
       };
 
     case 'validators':
@@ -69,10 +69,10 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
     case 'reset':
       return {
         ...refactorForValid(controls, group.validators),
-        dirty: controlsPartialChecked(controls, 'dirty'),
-        dirties: controlsAllChecked(controls, 'dirty'),
-        touched: controlsPartialChecked(controls, 'touched'),
-        toucheds: controlsAllChecked(controls, 'touched'),
+        dirty: verifyAnyTrueInControls(controls, 'dirty'),
+        dirties: verifyAllTrueInControls(controls, 'dirty'),
+        touched: verifyAnyTrueInControls(controls, 'touched'),
+        toucheds: verifyAllTrueInControls(controls, 'touched'),
         value: controlsToValue(controls)
       };
 
@@ -80,8 +80,8 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
     case 'value':
       return {
         ...refactorForValid(controls, group.validators),
-        dirty: controlsPartialChecked(controls, 'dirty'),
-        dirties: controlsAllChecked(controls, 'dirty'),
+        dirty: verifyAnyTrueInControls(controls, 'dirty'),
+        dirties: verifyAllTrueInControls(controls, 'dirty'),
         value: controlsToValue(controls)
       };
 
@@ -93,8 +93,7 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
 export class RolsterArrayGroup<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
-> implements ReactArrayGroup<C, R>
-{
+> implements ReactArrayGroup<C, R> {
   public readonly uuid: string;
 
   public readonly controls: C;
@@ -198,16 +197,16 @@ class ReactRolsterArrayGroup<
   constructor(options: FormArrayGroupOptions<C, R>) {
     const { controls, validators } = options;
 
-    const errors = validators ? groupIsValid({ controls, validators }) : [];
+    const errors = validators ? formGroupIsValid({ controls, validators }) : [];
 
     super({
       ...options,
       errors,
-      dirties: controlsAllChecked(controls, 'dirty'),
-      dirty: controlsPartialChecked(controls, 'dirty'),
-      touched: controlsPartialChecked(controls, 'touched'),
-      toucheds: controlsAllChecked(controls, 'touched'),
-      valid: errors.length === 0 && controlsAllChecked(controls, 'valid'),
+      dirties: verifyAllTrueInControls(controls, 'dirty'),
+      dirty: verifyAnyTrueInControls(controls, 'dirty'),
+      touched: verifyAnyTrueInControls(controls, 'touched'),
+      toucheds: verifyAllTrueInControls(controls, 'touched'),
+      valid: errors.length === 0 && verifyAllTrueInControls(controls, 'valid'),
       value: controlsToValue(controls)
     });
   }
@@ -220,7 +219,7 @@ interface ReactGroupOptions<
   uuid?: string;
 }
 
-function groupIsOptions<
+function valueIsGroupOptions<
   C extends ReactArrayControls,
   O extends ReactGroupOptions<C>
 >(options: any): options is O {
@@ -242,10 +241,10 @@ export function formArrayGroup<
   options: ReactGroupOptions<C, R> | C,
   validators?: ValidatorGroupFn<C, R>[]
 ): ReactArrayGroup<C, R> {
-  const groupUuid = groupIsOptions(options) ? options.uuid || uuid() : uuid();
+  const _uuid = valueIsGroupOptions(options) ? options.uuid || uuid() : uuid();
 
   return new ReactRolsterArrayGroup({
     ...createFormGroupOptions<C, ReactGroupOptions<C, R>>(options, validators),
-    uuid: groupUuid
+    uuid: _uuid
   });
 }

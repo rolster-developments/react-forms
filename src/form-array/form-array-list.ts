@@ -1,8 +1,8 @@
 import { ArrayControlsValue, ArrayListValueToControls } from '@rolster/forms';
 import {
-  controlIsValid,
-  controlsAllChecked,
-  controlsToValue
+  controlsToValue,
+  formControlIsValid,
+  verifyAllTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
@@ -24,15 +24,16 @@ interface ArrayControlOptions<T = any> extends ReactArrayControlOptions<T> {
   errors: ValidatorError<T>[];
 }
 
-interface Options<C extends ReactArrayControls = ReactArrayControls>
-  extends Partial<ArrayControlOptions<ArrayControlsValue<C>[]>> {
+interface Options<
+  C extends ReactArrayControls = ReactArrayControls
+> extends Partial<ArrayControlOptions<ArrayControlsValue<C>[]>> {
   controls: C[];
 }
 
 class RolsterArrayList<
-    E extends HTMLElement = HTMLElement,
-    C extends ReactArrayControls = ReactArrayControls
-  >
+  E extends HTMLElement = HTMLElement,
+  C extends ReactArrayControls = ReactArrayControls
+>
   extends RolsterArrayControl<E, ArrayControlsValue<C>[]>
   implements ReactArrayList<C>
 {
@@ -50,7 +51,7 @@ class RolsterArrayList<
     const { controls, valueToControls, validators } = options;
 
     const value = controls.map(controlsToValue);
-    const errors = validators ? controlIsValid({ value, validators }) : [];
+    const errors = validators ? formControlIsValid({ value, validators }) : [];
 
     super({ ...options, errors, value });
 
@@ -60,7 +61,8 @@ class RolsterArrayList<
     this.valid =
       errors.length === 0 &&
       controls.reduce(
-        (valid, controls) => valid && controlsAllChecked(controls, 'valid'),
+        (valid, controls) =>
+          valid && verifyAllTrueInControls(controls, 'valid'),
         true
       );
 

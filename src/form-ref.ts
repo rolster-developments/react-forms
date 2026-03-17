@@ -1,5 +1,5 @@
 import { FormControlOptions } from '@rolster/forms';
-import { createFormControlOptions } from '@rolster/forms/arguments';
+import { createFormControlOptions } from '@rolster/forms/helpers';
 import { ValidatorFn } from '@rolster/validators';
 import { useEffect } from 'react';
 import { useInputControl } from './form-control';

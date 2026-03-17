@@ -3,13 +3,13 @@ import {
   FormArrayOptions,
   ValidatorArrayFn
 } from '@rolster/forms';
-import { createFormArrayOptions } from '@rolster/forms/arguments';
 import {
-  arrayIsValid,
   controlsToValue,
-  groupAllChecked,
+  createFormArrayOptions,
+  formArrayIsValid,
   hasError as rolsterHasError,
-  someErrors as rolsterSomeErrors
+  someErrors as rolsterSomeErrors,
+  verifyAllTrueInGroups
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -42,11 +42,11 @@ function refactorForValid<C extends ReactArrayControls, R>(
   groups: ReactArrayGroup<C, R>[],
   validators?: ValidatorArrayFn<C, R>[]
 ) {
-  const errors = validators ? arrayIsValid({ groups, validators }) : [];
+  const errors = validators ? formArrayIsValid({ groups, validators }) : [];
 
   return {
     errors,
-    valid: errors.length === 0 && groupAllChecked(groups, 'valid')
+    valid: errors.length === 0 && verifyAllTrueInGroups(groups, 'valid')
   };
 }
 

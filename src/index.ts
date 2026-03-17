@@ -1,11 +1,11 @@
 export {
   formArrayControl,
-  formArrayGroup,
-  formArrayList,
   inputArrayControl,
-  reactArrayControl,
-  useFormArray
-} from './form-array';
+  reactArrayControl
+} from './form-array/form-array-control';
+export { formArrayGroup } from './form-array/form-array-group';
+export { formArrayList } from './form-array/form-array-list';
+export { useFormArray } from './form-array/form-array';
 export {
   useFormControl,
   useInputControl,

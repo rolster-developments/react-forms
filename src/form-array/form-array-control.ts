@@ -1,6 +1,10 @@
 import { FormArrayControlOptions } from '@rolster/forms';
-import { createFormControlOptions } from '@rolster/forms/arguments';
-import { controlIsValid, hasError, someErrors } from '@rolster/forms/helpers';
+import {
+  createFormControlOptions,
+  formControlIsValid,
+  hasError,
+  someErrors
+} from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
@@ -20,9 +24,10 @@ interface ArrayControlOptions<T = any> extends ReactArrayControlOptions<T> {
 
 type Options<T = any> = Partial<ArrayControlOptions<T>>;
 
-export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
-  implements ReactArrayControl<E, T>
-{
+export class RolsterArrayControl<
+  E extends HTMLElement = HTMLElement,
+  T = any
+> implements ReactArrayControl<E, T> {
   public readonly uuid: string;
 
   public readonly value: T;
@@ -105,7 +110,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   public setDefaultValue(value: T): void {
     if (value !== this.defaultValue) {
       const errors = this.validators
-        ? controlIsValid({ value, validators: this.validators })
+        ? formControlIsValid({ value, validators: this.validators })
         : [];
 
       this.refresh('value', { errors, defaultValue: value, value });
@@ -115,7 +120,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   public setStartValue(value: T): void {
     if (value !== this.value) {
       const errors = this.validators
-        ? controlIsValid({ value, validators: this.validators })
+        ? formControlIsValid({ value, validators: this.validators })
         : [];
 
       this.refresh('value', { errors, value });
@@ -125,7 +130,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
   public setValue(value: T): void {
     if (value !== this.value) {
       const errors = this.validators
-        ? controlIsValid({ value, validators: this.validators })
+        ? formControlIsValid({ value, validators: this.validators })
         : [];
 
       this.refresh('value', { dirty: true, errors, value });
@@ -134,7 +139,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   public setValidators(validators?: ValidatorFn<T>[] | undefined): void {
     const errors = validators
-      ? controlIsValid({ value: this.value, validators })
+      ? formControlIsValid({ value: this.value, validators })
       : [];
 
     this.refresh('validators', { errors, validators });
@@ -154,7 +159,7 @@ export class RolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>
 
   public reset(): void {
     const errors = this.validators
-      ? controlIsValid({
+      ? formControlIsValid({
           value: this.defaultValue,
           validators: this.validators
         })
@@ -187,14 +192,16 @@ class ReactRolsterArrayControl<
 > extends RolsterArrayControl<E, T> {
   constructor(options: ReactArrayControlOptions<T>) {
     const { value, validators } = options;
-    const errors = validators ? controlIsValid({ value, validators }) : [];
+    const errors = validators ? formControlIsValid({ value, validators }) : [];
 
     super({ ...options, errors });
   }
 }
 
-interface ReactControlOptions<T = any>
-  extends Omit<FormArrayControlOptions<T>, 'uuid'> {
+interface ReactControlOptions<T = any> extends Omit<
+  FormArrayControlOptions<T>,
+  'uuid'
+> {
   touched?: boolean;
 }
 

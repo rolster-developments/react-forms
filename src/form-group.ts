@@ -3,11 +3,11 @@ import {
   FormGroupOptions,
   ValidatorGroupFn
 } from '@rolster/forms';
-import { createFormGroupOptions } from '@rolster/forms/arguments';
 import {
-  controlsAllChecked,
   controlsToValue,
-  groupIsValid
+  createFormGroupOptions,
+  formGroupIsValid,
+  verifyAllTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -36,11 +36,11 @@ function refactorForValid<C extends ReactControls>(
   controls: C,
   validators?: ValidatorGroupFn<C>[]
 ) {
-  const errors = validators ? groupIsValid({ controls, validators }) : [];
+  const errors = validators ? formGroupIsValid({ controls, validators }) : [];
 
   return {
     errors,
-    valid: errors.length === 0 && controlsAllChecked(controls, 'valid')
+    valid: errors.length === 0 && verifyAllTrueInControls(controls, 'valid')
   };
 }
 

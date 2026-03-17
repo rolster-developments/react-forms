@@ -1,7 +1,7 @@
 import { FormControlOptions } from '@rolster/forms';
-import { createFormControlOptions } from '@rolster/forms/arguments';
 import {
-  controlIsValid,
+  createFormControlOptions,
+  formControlIsValid,
   hasError as rolsterHasError,
   someErrors as rolsterSomeErrors
 } from '@rolster/forms/helpers';
@@ -27,7 +27,7 @@ function errorsInControl<T = any>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ValidatorError<any>[] {
-  return validators ? controlIsValid({ value, validators }) : [];
+  return validators ? formControlIsValid({ value, validators }) : [];
 }
 
 function useControl<E extends HTMLElement, T = any>(
