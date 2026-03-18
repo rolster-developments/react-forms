@@ -1,6 +1,6 @@
 {
   "name": "@rolster/react-forms",
-  "version": "19.2.0",
+  "version": "19.3.0",
   "type": "module",
   "description": "It implements a set of classes that allow managing the control of states of the input components in React",
   "license": "MIT",
@@ -12,7 +12,7 @@
     }
   ],
   "types": "./dist/esm/index.d.ts",
-  "main": "./dist/esm/index.js",
+  "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "exports": {
     ".": {
@@ -31,18 +31,18 @@
     "prettier": "prettier --write \"src/**/*.{ts}\"",
     "clean": "rimraf ./dist",
     "dev": "vite",
-    "build": "npm run clean && tsc -p tsconfig.app.json && rollup -c rollup.config.js",
+    "build": "npm run clean && tsc -p tsconfig.app.json && rollup -c rollup.config.mjs",
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@rolster/forms": "^3.3.1",
-    "@rolster/validators": "^2.4.1",
+    "@rolster/forms": "^4.0.0",
+    "@rolster/validators": "^3.0.0",
     "react": "^19.2.0",
-    "uuid": "^11.0.3"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@rolster/rollup": "^1.0.10",
+    "@rolster/rollup": "^1.1.0",
     "@rolster/types": "^1.1.0",
     "@types/react": "^18.2.42",
     "@types/uuid": "^9.0.7",
