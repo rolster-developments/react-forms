@@ -14,12 +14,14 @@ import { ValidatorError } from '@rolster/validators';
 import { v4 as uuid } from 'uuid';
 import {
   ReactArrayAction,
-  ReactArrayControlSubscriber,
+  ReactArrayControlSubscriber
+} from './form-array-control.type';
+import { replaceControl } from './form-array-group.helper';
+import {
   ReactArrayControls,
   ReactArrayGroup,
   ReactArrayGroupSubscriber
-} from '../types';
-import { replaceControl } from '../utilities';
+} from './form-array-group.type';
 
 interface ArrayGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,

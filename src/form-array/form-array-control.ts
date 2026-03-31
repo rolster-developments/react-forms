@@ -9,13 +9,13 @@ import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
 import {
-  ReactArrayControl,
   ReactArrayAction,
+  ReactArrayControl,
   ReactArrayControlOptions,
   ReactArrayControlSubscriber,
   ReactHtmlArrayControl,
   ReactInputArrayControl
-} from '../types';
+} from './form-array-control.type';
 
 interface ArrayControlOptions<T = any> extends ReactArrayControlOptions<T> {
   errors: ValidatorError<T>[];
@@ -182,7 +182,7 @@ export class RolsterArrayControl<
   }
 
   protected refresh(action: ReactArrayAction, options: Options<T>): void {
-    this.subscriber && this.subscriber(action, this.builder(options));
+    this.subscriber?.(action, this.builder(options));
   }
 }
 

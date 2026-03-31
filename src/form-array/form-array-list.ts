@@ -9,13 +9,12 @@ import { v4 as uuid } from 'uuid';
 import {
   ReactArrayAction,
   ReactArrayControl,
-  ReactArrayControlOptions,
-  ReactArrayControls,
-  ReactArrayList,
-  ReactArrayListOptions
-} from '../types';
-import { replaceControl } from '../utilities';
+  ReactArrayControlOptions
+} from './form-array-control.type';
 import { RolsterArrayControl } from './form-array-control';
+import { replaceControl } from './form-array-group.helper';
+import { ReactArrayControls } from './form-array-group.type';
+import { ReactArrayList, ReactArrayListOptions } from './form-array-list.type';
 
 type RolsterListOptions<C extends ReactArrayControls = ReactArrayControls> =
   Omit<ReactArrayListOptions<C>, 'value'>;

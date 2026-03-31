@@ -1,4 +1,5 @@
-import { ReactArrayControl, ReactArrayControls } from './types';
+import { ReactArrayControl } from './form-array-control.type';
+import { ReactArrayControls } from './form-array-group.type';
 
 export function replaceControl<C extends ReactArrayControls>(
   controls: C,

@@ -1,17 +1,23 @@
+export * from './form-array/form-array-control.type';
 export {
   formArrayControl,
   inputArrayControl,
   reactArrayControl
 } from './form-array/form-array-control';
+export * from './form-array/form-array-group.type';
 export { formArrayGroup } from './form-array/form-array-group';
+export * from './form-array/form-array-list.type';
 export { formArrayList } from './form-array/form-array-list';
+export * from './form-array/form-array.type';
 export { useFormArray } from './form-array/form-array';
+export * from './form-control/form-control.type';
 export {
   useFormControl,
   useInputControl,
   useReactControl
-} from './form-control';
-export { useFormGroup } from './form-group';
+} from './form-control/form-control';
+export * from './form-group/form-group.type';
+export { useFormGroup } from './form-group/form-group';
+export { useNumberRefControl, useTextRefControl } from './form-ref/form-ref';
 export * from './helpers';
 export * from './hooks';
-export * from './types';

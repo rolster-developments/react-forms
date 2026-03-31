@@ -7,18 +7,15 @@ import {
   controlsToValue,
   createFormArrayOptions,
   formArrayIsValid,
-  hasError as rolsterHasError,
-  someErrors as rolsterSomeErrors,
+  hasError,
+  someErrors,
   verifyAllTrueInGroups
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ReactArrayAction,
-  ReactArrayControls,
-  ReactArrayGroup,
-  ReactFormArray
-} from '../types';
+import { ReactArrayAction } from './form-array-control.type';
+import { ReactArrayControls, ReactArrayGroup } from './form-array-group.type';
+import { ReactFormArray } from './form-array.type';
 
 interface ReactArrayState<
   C extends ReactArrayControls,
@@ -221,16 +218,16 @@ export function useFormArray<
     }));
   }, []);
 
-  const hasError = useCallback(
+  const formArrayHasError = useCallback(
     (key: string) => {
-      return rolsterHasError(state.errors, key);
+      return hasError(state.errors, key);
     },
     [state.errors]
   );
 
-  const someErrors = useCallback(
+  const formArraySomeErrors = useCallback(
     (keys: string[]) => {
-      return rolsterSomeErrors(state.errors, keys);
+      return someErrors(state.errors, keys);
     },
     [state.errors]
   );
@@ -249,7 +246,7 @@ export function useFormArray<
     enabled: !state.disabled,
     error: state.errors[0],
     findByUuid,
-    hasError,
+    hasError: formArrayHasError,
     invalid: !state.valid,
     merge,
     pristine: !state.dirty,
@@ -260,7 +257,7 @@ export function useFormArray<
     setDefaultValue,
     setValidators,
     setValue,
-    someErrors,
+    someErrors: formArraySomeErrors,
     untouched: !state.touched,
     untoucheds: !state.toucheds,
     wrong: state.touched && !state.valid

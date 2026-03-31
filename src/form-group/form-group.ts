@@ -11,7 +11,7 @@ import {
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ReactControls, ReactGroup } from './types';
+import { ReactControls, ReactGroup } from './form-group.type';
 
 interface GroupState<C extends ReactControls> {
   controls: C;
@@ -167,6 +167,14 @@ export function useFormGroup<C extends ReactControls>(
     }));
   }, []);
 
+  const setValue = useCallback((value: Partial<ControlsValue<C>>) => {
+    Object.entries(value).forEach(([key, valueControl]) => {
+      const formControl = formGroup.controls[key as keyof C];
+
+      formControl?.setValue(valueControl);
+    });
+  }, []);
+
   const reset = useCallback(() => {
     Object.values(formGroup.controls).forEach((control) => {
       control.reset();
@@ -181,6 +189,7 @@ export function useFormGroup<C extends ReactControls>(
     pristines: !state.dirties,
     reset,
     setValidators,
+    setValue,
     untouched: !state.touched,
     untoucheds: !state.toucheds,
     wrong: state.touched && !state.valid

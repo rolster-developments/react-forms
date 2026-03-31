@@ -1,13 +1,17 @@
 import { FormControlOptions } from '@rolster/forms';
 import {
   createFormControlOptions,
-  formControlIsValid,
-  hasError as rolsterHasError,
-  someErrors as rolsterSomeErrors
+  hasError,
+  someErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { useCallback, useRef, useState } from 'react';
-import { ReactFormControl, ReactHtmlControl, ReactInputControl } from './types';
+import { errorsInControl } from './form-control.helper';
+import {
+  ReactFormControl,
+  ReactHtmlControl,
+  ReactInputControl
+} from './form-control.type';
 
 interface ReactControlOptions<T = any> extends FormControlOptions<T> {
   touched?: boolean;
@@ -21,13 +25,6 @@ interface ControlState<T = any> {
   value: T;
   touched: boolean;
   validators?: ValidatorFn<T>[];
-}
-
-function errorsInControl<T = any>(
-  value: T,
-  validators?: ValidatorFn<T>[]
-): ValidatorError<any>[] {
-  return validators ? formControlIsValid({ value, validators }) : [];
 }
 
 function useControl<E extends HTMLElement, T = any>(
@@ -120,16 +117,16 @@ function useControl<E extends HTMLElement, T = any>(
     }));
   }, []);
 
-  const hasError = useCallback(
+  const formControlHasError = useCallback(
     (key: string) => {
-      return rolsterHasError(state.errors, key);
+      return hasError(state.errors, key);
     },
     [state.errors]
   );
 
-  const someErrors = useCallback(
+  const formControlSomeErrors = useCallback(
     (keys: string[]) => {
-      return rolsterSomeErrors(state.errors, keys);
+      return someErrors(state.errors, keys);
     },
     [state.errors]
   );
@@ -145,7 +142,7 @@ function useControl<E extends HTMLElement, T = any>(
     enabled: !state.disabled,
     error: state.errors[0],
     focus,
-    hasError,
+    hasError: formControlHasError,
     invalid: !valid,
     pristine: !state.dirty,
     reset,
@@ -153,7 +150,7 @@ function useControl<E extends HTMLElement, T = any>(
     setStartValue,
     setValidators,
     setValue,
-    someErrors,
+    someErrors: formControlSomeErrors,
     touch,
     unfocused: !state.focused,
     untouched: !state.touched,
