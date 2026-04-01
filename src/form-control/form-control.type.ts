@@ -1,10 +1,10 @@
-import { AbstractControl, AbstractFormControl } from '@rolster/forms';
+import { AbstractFormControl, AbstractValueControl } from '@rolster/forms';
 import { RefObject } from 'react';
 
 export interface ReactAbstractControl<
   E extends HTMLElement = HTMLElement,
   T = any
-> extends AbstractControl<T> {
+> extends AbstractValueControl<T> {
   elementRef?: RefObject<E>;
 }
 

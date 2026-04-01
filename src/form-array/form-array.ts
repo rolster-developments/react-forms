@@ -170,6 +170,13 @@ export function useFormArray<
     }));
   }, []);
 
+  const setStartValue = useCallback((groups: G[]) => {
+    setState((state) => ({
+      ...state,
+      ...refactorForGroups(groups, state.validators)
+    }));
+  }, []);
+
   const setDefaultValue = useCallback((groups: G[]) => {
     setState((state) => ({
       ...state,
@@ -255,6 +262,7 @@ export function useFormArray<
     remove,
     reset,
     setDefaultValue,
+    setStartValue,
     setValidators,
     setValue,
     someErrors: formArraySomeErrors,
