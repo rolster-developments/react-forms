@@ -1,3 +1,6 @@
+import { ReactArrayControl } from './form-array/form-array-control.type';
+import { ReactFormControl } from './form-control/form-control.type';
+
 export * from './form-array/form-array-control.type';
 export {
   formArrayControl,
@@ -21,3 +24,7 @@ export { useFormGroup } from './form-group/form-group';
 export { useNumberRefControl, useTextRefControl } from './form-ref/form-ref';
 export * from './helpers';
 export * from './hooks';
+
+export type ReactControl<E extends HTMLElement = HTMLElement, T = any> =
+  | ReactFormControl<E, T>
+  | ReactArrayControl<E, T>;
