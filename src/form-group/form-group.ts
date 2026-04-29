@@ -52,6 +52,24 @@ function checkPartialSuccess(status: boolean[]): boolean {
   return status.reduce((success, status) => success || status, false);
 }
 
+function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
+  if (a === b) {
+    return true;
+  }
+
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C>
 ): ReactGroup<C>;
@@ -67,13 +85,6 @@ export function useFormGroup<C extends ReactControls>(
     options,
     validators
   );
-
-  const formInitialized = useRef({
-    dirty: false,
-    touched: false,
-    value: false,
-    visual: false
-  });
 
   const refControls = useRef(formGroup.controls);
   refControls.current = formGroup.controls;
@@ -113,60 +124,74 @@ export function useFormGroup<C extends ReactControls>(
     };
   });
 
-  useEffect(() => {
-    if (formInitialized.current.value) {
-      setState((state) => ({
-        ...state,
-        ...refactorForValid(formGroup.controls, state.validators),
-        controls: formGroup.controls,
-        value: controlsToValue(formGroup.controls)
-      }));
-    } else {
-      formInitialized.current.value = true;
-    }
-  }, formGroupStatus.value);
+  const refPrevFormGroupStatus = useRef<GroupStatus | null>(null);
 
   useEffect(() => {
-    if (formInitialized.current.dirty) {
-      setState((state) => ({
-        ...state,
-        controls: formGroup.controls,
-        dirty: checkPartialSuccess(formGroupStatus.dirty),
-        dirties: checkAllSuccess(formGroupStatus.dirty)
-      }));
-    } else {
-      formInitialized.current.dirty = true;
-    }
-  }, formGroupStatus.dirty);
+    const formGroupPrev = refPrevFormGroupStatus.current;
 
-  useEffect(() => {
-    if (formInitialized.current.touched) {
-      setState((state) => ({
-        ...state,
-        controls: formGroup.controls,
-        touched: checkPartialSuccess(formGroupStatus.touched),
-        toucheds: checkAllSuccess(formGroupStatus.touched)
-      }));
-    } else {
-      formInitialized.current.touched = true;
-    }
-  }, formGroupStatus.touched);
+    refPrevFormGroupStatus.current = formGroupStatus;
 
-  useEffect(() => {
-    if (formInitialized.current.visual) {
-      setState((state) => ({
-        ...state,
-        controls: formGroup.controls
-      }));
-    } else {
-      formInitialized.current.visual = true;
+    if (!formGroupPrev) {
+      return;
     }
-  }, formGroupStatus.visual);
+
+    const valueChanged = !arraysShallowEqual(
+      formGroupPrev.value,
+      formGroupStatus.value
+    );
+
+    const dirtyChanged = !arraysShallowEqual(
+      formGroupPrev.dirty,
+      formGroupStatus.dirty
+    );
+
+    const touchedChanged = !arraysShallowEqual(
+      formGroupPrev.touched,
+      formGroupStatus.touched
+    );
+
+    const visualChanged = !arraysShallowEqual(
+      formGroupPrev.visual,
+      formGroupStatus.visual
+    );
+
+    if (!valueChanged && !dirtyChanged && !touchedChanged && !visualChanged) {
+      return;
+    }
+
+    setState((state) => {
+      const next: GroupState<C> = { ...state, controls: formGroup.controls };
+
+      if (valueChanged) {
+        const validResult = refactorForValid(
+          formGroup.controls,
+          state.validators
+        );
+
+        next.errors = validResult.errors;
+        next.valid = validResult.valid;
+        next.value = controlsToValue(formGroup.controls);
+      }
+
+      if (dirtyChanged) {
+        next.dirty = checkPartialSuccess(formGroupStatus.dirty);
+        next.dirties = checkAllSuccess(formGroupStatus.dirty);
+      }
+
+      if (touchedChanged) {
+        next.touched = checkPartialSuccess(formGroupStatus.touched);
+        next.toucheds = checkAllSuccess(formGroupStatus.touched);
+      }
+
+      return next;
+    });
+  });
 
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
     setState((state) => ({
       ...state,
-      ...refactorForValid(state.controls, validators)
+      ...refactorForValid(refControls.current, validators),
+      validators
     }));
   }, []);
 

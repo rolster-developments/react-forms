@@ -147,12 +147,18 @@ export function useFormArray<
   );
 
   useEffect(() => {
-    formGroups.current.clear();
+    const previousGroups = formGroups.current;
+    const currentGroups = new Map<string, G>();
 
     state.groups.forEach((group) => {
-      formGroups.current.set(group.uuid, group);
-      group.subscribe(subscriber);
+      currentGroups.set(group.uuid, group);
+
+      if (previousGroups.get(group.uuid) !== group) {
+        group.subscribe(subscriber);
+      }
     });
+
+    formGroups.current = currentGroups;
   }, [state.groups]);
 
   const disable = useCallback(() => {
