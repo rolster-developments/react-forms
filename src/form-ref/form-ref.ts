@@ -1,7 +1,7 @@
 import { FormControlOptions } from '@rolster/forms';
 import { createFormControlOptions } from '@rolster/forms/helpers';
 import { ValidatorFn } from '@rolster/validators';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInputControl } from '../form-control/form-control';
 import { ReactInputControl } from '../form-control/form-control.type';
 
@@ -17,18 +17,39 @@ type NumberRefOptions = InputRefOptions<number>;
 function useInputRefControl<T = any>(options: ReactRefOptions<T>) {
   const formRef = useInputControl(options);
 
+  const setValueRef = useRef(options.setValue);
+  setValueRef.current = options.setValue;
+
   useEffect(() => {
-    formRef.elementRef?.current?.addEventListener('focus', () => {
+    const element = formRef.elementRef?.current;
+
+    if (!element) {
+      return;
+    }
+
+    const handleFocus = () => {
       formRef.focus();
-    });
+    };
 
-    formRef.elementRef?.current?.addEventListener('blur', () => {
+    const handleBlur = () => {
       formRef.blur();
-    });
+    };
 
-    formRef.elementRef?.current?.addEventListener('change', ({ target }) => {
-      options.setValue(formRef, (target as HTMLInputElement).value);
-    });
+    const handleChange = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+
+      setValueRef.current(formRef, target.value);
+    };
+
+    element.addEventListener('focus', handleFocus);
+    element.addEventListener('blur', handleBlur);
+    element.addEventListener('change', handleChange);
+
+    return () => {
+      element.removeEventListener('focus', handleFocus);
+      element.removeEventListener('blur', handleBlur);
+      element.removeEventListener('change', handleChange);
+    };
   }, []);
 
   return formRef;

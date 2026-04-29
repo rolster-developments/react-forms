@@ -130,15 +130,6 @@ export function useFormArray<
     };
   });
 
-  useEffect(() => {
-    formGroups.current.clear();
-
-    state.groups.forEach((group) => {
-      formGroups.current.set(group.uuid, group);
-      group.subscribe(subscriber);
-    });
-  }, [state.groups]);
-
   const subscriber = useCallback(
     (action: ReactArrayAction, group: ReactArrayGroup<C, R>) => {
       setState((state) => {
@@ -154,6 +145,15 @@ export function useFormArray<
     },
     []
   );
+
+  useEffect(() => {
+    formGroups.current.clear();
+
+    state.groups.forEach((group) => {
+      formGroups.current.set(group.uuid, group);
+      group.subscribe(subscriber);
+    });
+  }, [state.groups]);
 
   const disable = useCallback(() => {
     setState((state) => ({ ...state, disabled: true }));

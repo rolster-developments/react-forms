@@ -75,6 +75,9 @@ export function useFormGroup<C extends ReactControls>(
     visual: false
   });
 
+  const refControls = useRef(formGroup.controls);
+  refControls.current = formGroup.controls;
+
   const formGroupStatus = useMemo<GroupStatus>(() => {
     const dirty: boolean[] = [];
     const touched: boolean[] = [];
@@ -169,14 +172,14 @@ export function useFormGroup<C extends ReactControls>(
 
   const setValue = useCallback((value: Partial<ControlsValue<C>>) => {
     Object.entries(value).forEach(([key, valueControl]) => {
-      const formControl = formGroup.controls[key as keyof C];
+      const formControl = refControls.current[key as keyof C];
 
       formControl?.setValue(valueControl);
     });
   }, []);
 
   const reset = useCallback(() => {
-    Object.values(formGroup.controls).forEach((control) => {
+    Object.values(refControls.current).forEach((control) => {
       control.reset();
     });
   }, []);
