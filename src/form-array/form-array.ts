@@ -110,20 +110,20 @@ export function useFormArray<
     validators
   );
 
-  const defaultValue = useRef(formArray.groups || []);
-  const formGroups = useRef<Map<string, G>>(new Map());
+  const refArrayValue = useRef(formArray.groups || []);
+  const refArrayGroups = useRef<Map<string, G>>(new Map());
 
   const [state, setState] = useState<ReactArrayState<C, R, G>>(() => {
     return {
-      ...refactorForValid(defaultValue.current, formArray.validators),
-      controls: defaultValue.current.map(({ controls }) => controls),
+      ...refactorForValid(refArrayValue.current, formArray.validators),
+      controls: refArrayValue.current.map(({ controls }) => controls),
       dirty: false,
       dirties: false,
       disabled: false,
-      groups: defaultValue.current,
+      groups: refArrayValue.current,
       touched: false,
       toucheds: false,
-      value: defaultValue.current.map(({ controls }) =>
+      value: refArrayValue.current.map(({ controls }) =>
         controlsToValue(controls)
       ),
       validators: formArray.validators
@@ -147,7 +147,7 @@ export function useFormArray<
   );
 
   useEffect(() => {
-    const previousGroups = formGroups.current;
+    const previousGroups = refArrayGroups.current;
     const currentGroups = new Map<string, G>();
 
     state.groups.forEach((group) => {
@@ -158,7 +158,7 @@ export function useFormArray<
       }
     });
 
-    formGroups.current = currentGroups;
+    refArrayGroups.current = currentGroups;
   }, [state.groups]);
 
   const disable = useCallback(() => {
@@ -189,10 +189,12 @@ export function useFormArray<
       ...refactorForGroups(groups, state.validators)
     }));
 
-    defaultValue.current = groups;
+    refArrayValue.current = groups;
   }, []);
 
   const push = useCallback((group: G) => {
+    refArrayGroups.current.set(group.uuid, group);
+
     setState((state) => ({
       ...state,
       ...refactorForGroups([...state.groups, group], state.validators)
@@ -200,6 +202,10 @@ export function useFormArray<
   }, []);
 
   const merge = useCallback((groups: G[]) => {
+    groups.forEach((group) => {
+      refArrayGroups.current.set(group.uuid, group);
+    });
+
     setState((state) => ({
       ...state,
       ...refactorForGroups([...state.groups, ...groups], state.validators)
@@ -207,6 +213,8 @@ export function useFormArray<
   }, []);
 
   const remove = useCallback(({ uuid }: G) => {
+    refArrayGroups.current.delete(uuid);
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(
@@ -216,12 +224,9 @@ export function useFormArray<
     }));
   }, []);
 
-  const findByUuid = useCallback(
-    (uuid: string) => {
-      return formGroups.current.get(uuid);
-    },
-    [state.groups]
-  );
+  const findByUuid = useCallback((uuid: string) => {
+    return refArrayGroups.current.get(uuid);
+  }, []);
 
   const setValidators = useCallback((validators?: ValidatorArrayFn<C, R>[]) => {
     setState((state) => ({
@@ -246,11 +251,11 @@ export function useFormArray<
   );
 
   const reset = useCallback(() => {
-    defaultValue.current.forEach((group) => group.reset());
+    refArrayValue.current.forEach((group) => group.reset());
 
     setState((state) => ({
       ...state,
-      ...refactorForGroups(defaultValue.current, state.validators)
+      ...refactorForGroups(refArrayValue.current, state.validators)
     }));
   }, []);
 

@@ -27,9 +27,10 @@ interface GroupState<C extends ReactControls> {
 
 interface GroupStatus {
   dirty: boolean[];
+  disabled: boolean[];
+  focused: boolean[];
   touched: boolean[];
   value: any[];
-  visual: boolean[];
 }
 
 function refactorForValid<C extends ReactControls>(
@@ -45,11 +46,11 @@ function refactorForValid<C extends ReactControls>(
 }
 
 function checkAllSuccess(status: boolean[]): boolean {
-  return status.reduce((success, status) => success && status, true);
+  return status.every((value) => value);
 }
 
 function checkPartialSuccess(status: boolean[]): boolean {
-  return status.reduce((success, status) => success || status, false);
+  return status.some((value) => value);
 }
 
 function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
@@ -91,23 +92,25 @@ export function useFormGroup<C extends ReactControls>(
 
   const formGroupStatus = useMemo<GroupStatus>(() => {
     const dirty: boolean[] = [];
+    const disabled: boolean[] = [];
+    const focused: boolean[] = [];
     const touched: boolean[] = [];
     const value: any[] = [];
-    const visual: boolean[] = [];
 
     Object.values(formGroup.controls).forEach((control) => {
       dirty.push(control.dirty);
+      disabled.push(control.disabled);
+      focused.push((control as any).focused);
       touched.push(control.touched);
       value.push(control.value);
-      visual.push(control.disabled);
-      visual.push((control as any).focused);
     });
 
     return {
       dirty,
+      disabled,
+      focused,
       touched,
-      value,
-      visual
+      value
     };
   }, [formGroup.controls]);
 
@@ -150,12 +153,23 @@ export function useFormGroup<C extends ReactControls>(
       formGroupStatus.touched
     );
 
-    const visualChanged = !arraysShallowEqual(
-      formGroupPrev.visual,
-      formGroupStatus.visual
+    const disabledChanged = !arraysShallowEqual(
+      formGroupPrev.disabled,
+      formGroupStatus.disabled
     );
 
-    if (!valueChanged && !dirtyChanged && !touchedChanged && !visualChanged) {
+    const focusedChanged = !arraysShallowEqual(
+      formGroupPrev.focused,
+      formGroupStatus.focused
+    );
+
+    if (
+      !valueChanged &&
+      !dirtyChanged &&
+      !touchedChanged &&
+      !disabledChanged &&
+      !focusedChanged
+    ) {
       return;
     }
 
