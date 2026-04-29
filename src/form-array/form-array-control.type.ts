@@ -47,4 +47,9 @@ export type ReactInputArrayControl<T = any> = ReactArrayControl<
   HTMLInputElement,
   T
 >;
+export type ReactAreaArrayControl = ReactArrayControl<
+  HTMLTextAreaElement,
+  string
+>;
 export type ReactInputArrayVoid<T = any> = ReactArrayVoid<HTMLInputElement, T>;
+export type ReactAreaArrayVoid = ReactArrayVoid<HTMLTextAreaElement, string>;

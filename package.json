@@ -1,6 +1,6 @@
 {
   "name": "@rolster/react-forms",
-  "version": "19.4.3",
+  "version": "19.4.4",
   "type": "module",
   "description": "It implements a set of classes that allow managing the control of states of the input components in React",
   "license": "MIT",
@@ -39,7 +39,7 @@
     "@rolster/forms": "^4.1.2",
     "@rolster/validators": "^3.1.0",
     "react": "^19.2.0",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@rolster/rollup": "^2.0.0",

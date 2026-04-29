@@ -23,4 +23,6 @@ export type ReactFormVoid<
 export type ReactHtmlControl<T = any> = ReactFormControl<HTMLElement, T>;
 export type ReactHtmlVoid<T = any> = ReactFormVoid<HTMLElement, T>;
 export type ReactInputControl<T = any> = ReactFormControl<HTMLInputElement, T>;
+export type ReactAreaControl = ReactFormControl<HTMLTextAreaElement, string>;
 export type ReactInputVoid<T = any> = ReactFormVoid<HTMLInputElement, T>;
+export type ReactAreaVoid = ReactFormVoid<HTMLTextAreaElement, string>;

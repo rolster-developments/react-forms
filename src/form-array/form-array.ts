@@ -240,6 +240,8 @@ export function useFormArray<
   );
 
   const reset = useCallback(() => {
+    defaultValue.current.forEach((group) => group.reset());
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(defaultValue.current, state.validators)

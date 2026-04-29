@@ -9,6 +9,7 @@ export interface ReactArrayGroup<
   C extends ReactArrayControls,
   R = any
 > extends AbstractArrayGroup<C, R> {
+  reset(): void;
   setResource(resource: Undefined<R>): void;
   subscribe: (subscriber: ReactArrayGroupSubscriber<C, R>) => void;
 }

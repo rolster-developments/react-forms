@@ -186,6 +186,12 @@ export class RolsterArrayGroup<
     this.refresh('resource', { resource });
   }
 
+  public reset(): void {
+    Object.values(this.controls).forEach((control) => {
+      control.reset();
+    });
+  }
+
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
     this.subscriber &&
       this.subscriber(action, new RolsterArrayGroup({ ...this, ...options }));
