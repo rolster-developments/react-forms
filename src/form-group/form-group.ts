@@ -14,7 +14,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './form-group.type';
 
 interface GroupState<C extends ReactControls> {
-  controls: C;
   dirties: boolean;
   dirty: boolean;
   errors: ValidatorError[];
@@ -117,7 +116,6 @@ export function useFormGroup<C extends ReactControls>(
   const [state, setState] = useState<GroupState<C>>(() => {
     return {
       ...refactorForValid(formGroup.controls, formGroup.validators),
-      controls: formGroup.controls,
       dirties: checkAllSuccess(formGroupStatus.dirty),
       dirty: checkPartialSuccess(formGroupStatus.dirty),
       touched: checkPartialSuccess(formGroupStatus.touched),
@@ -174,17 +172,17 @@ export function useFormGroup<C extends ReactControls>(
     }
 
     setState((state) => {
-      const next: GroupState<C> = { ...state, controls: formGroup.controls };
+      const next: GroupState<C> = { ...state };
 
       if (valueChanged) {
         const validResult = refactorForValid(
-          formGroup.controls,
+          refControls.current,
           state.validators
         );
 
         next.errors = validResult.errors;
         next.valid = validResult.valid;
-        next.value = controlsToValue(formGroup.controls);
+        next.value = controlsToValue(refControls.current);
       }
 
       if (dirtyChanged) {
@@ -225,6 +223,7 @@ export function useFormGroup<C extends ReactControls>(
 
   return {
     ...state,
+    controls: formGroup.controls,
     error: state.errors[0],
     invalid: !state.valid,
     pristine: !state.dirty,

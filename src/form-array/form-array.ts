@@ -194,6 +194,7 @@ export function useFormArray<
 
   const push = useCallback((group: G) => {
     refArrayGroups.current.set(group.uuid, group);
+    group.subscribe(subscriber);
 
     setState((state) => ({
       ...state,
@@ -203,6 +204,7 @@ export function useFormArray<
 
   const merge = useCallback((groups: G[]) => {
     groups.forEach((group) => {
+      group.subscribe(subscriber);
       refArrayGroups.current.set(group.uuid, group);
     });
 
