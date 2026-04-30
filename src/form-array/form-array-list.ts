@@ -14,7 +14,11 @@ import {
 import { RolsterArrayControl } from './form-array-control';
 import { replaceControl } from './form-array-group.helper';
 import { ReactArrayControls } from './form-array-group.type';
-import { ReactArrayList, ReactArrayListOptions } from './form-array-list.type';
+import {
+  ArrayListValueToUuid,
+  ReactArrayList,
+  ReactArrayListOptions
+} from './form-array-list.type';
 
 type RolsterListOptions<C extends ReactArrayControls = ReactArrayControls> =
   Omit<ReactArrayListOptions<C>, 'value'>;
@@ -27,6 +31,7 @@ interface Options<
   C extends ReactArrayControls = ReactArrayControls
 > extends Partial<ArrayControlOptions<ArrayControlsValue<C>[]>> {
   controls: C[];
+  controlsUuid?: string[];
 }
 
 class RolsterArrayList<
@@ -38,6 +43,8 @@ class RolsterArrayList<
 {
   public readonly controls: C[];
 
+  public readonly controlsUuid: string[];
+
   public readonly invalid: boolean;
 
   public readonly valid: boolean;
@@ -46,8 +53,11 @@ class RolsterArrayList<
 
   protected valueToControls: ArrayListValueToControls<C>;
 
+  protected valueToUuid?: ArrayListValueToUuid<C>;
+
   constructor(options: RolsterListOptions<C>) {
-    const { controls, valueToControls, validators } = options;
+    const { controls, controlsUuid, valueToControls, valueToUuid, validators } =
+      options;
 
     const value = controls.map(controlsToValue);
     const errors = validators ? formControlIsValid({ value, validators }) : [];
@@ -55,7 +65,9 @@ class RolsterArrayList<
     super({ ...options, errors, value });
 
     this.valueToControls = valueToControls;
+    this.valueToUuid = valueToUuid;
     this.controls = controls;
+    this.controlsUuid = controlsUuid ?? controls.map(() => uuid());
 
     this.valid =
       errors.length === 0 &&
@@ -74,21 +86,30 @@ class RolsterArrayList<
   }
 
   public setDefaultValue(value: ArrayControlsValue<C>[]): void {
+    console.log(value)
+    console.log(this.generateControlsUuid(value))
+
     this.refresh('list', {
       controls: value.map(this.valueToControls),
+      controlsUuid: this.generateControlsUuid(value),
       defaultValue: value
     });
   }
 
   public setStartValue(value: ArrayControlsValue<C>[]): void {
     this.refresh('list', {
-      controls: value.map(this.valueToControls)
+      controls: value.map(this.valueToControls),
+      controlsUuid: this.generateControlsUuid(value)
     });
   }
 
   public setValue(value: ArrayControlsValue<C>[]): void {
+    console.log(value)
+    console.log(this.generateControlsUuid(value))
+    
     this.refresh('list', {
       controls: value.map(this.valueToControls),
+      controlsUuid: this.generateControlsUuid(value),
       dirty: true
     });
   }
@@ -96,21 +117,42 @@ class RolsterArrayList<
   public reset(): void {
     this.refresh('list', {
       controls: this.defaultValue.map(this.valueToControls),
+      controlsUuid: this.generateControlsUuid(this.defaultValue),
       dirty: false,
       touched: false
     });
   }
 
   public push(controls: C): void {
+    const _uuid = this.valueToUuid?.(controlsToValue(controls)) ?? uuid();
+
     this.refresh('list', {
-      controls: [...this.controls, controls]
+      controls: [...this.controls, controls],
+      controlsUuid: [...this.controlsUuid, _uuid]
     });
   }
 
   public remove(controls: C): void {
-    this.refresh('list', {
-      controls: this.controls.filter((_controls) => _controls !== controls)
+    const _controls: C[] = [];
+    const _controlsUuid: string[] = [];
+
+    this.controls.forEach((currentControls, index) => {
+      if (currentControls !== controls) {
+        _controls.push(currentControls);
+        _controlsUuid.push(this.controlsUuid[index]);
+      }
     });
+
+    this.refresh('list', {
+      controls: _controls,
+      controlsUuid: _controlsUuid
+    });
+  }
+
+  public findControlsByUuid(uuid: string): Undefined<C> {
+    const index = this.controlsUuid.indexOf(uuid);
+
+    return index >= 0 ? this.controls[index] : undefined;
   }
 
   protected builder(
@@ -119,12 +161,17 @@ class RolsterArrayList<
     return new RolsterArrayList<E, C>({
       ...this,
       ...options,
-      valueToControls: this.valueToControls
+      valueToControls: this.valueToControls,
+      valueToUuid: this.valueToUuid
     });
   }
 
   protected refresh(action: ReactArrayAction, options: Options<C>): void {
     super.refresh(action, options);
+  }
+
+  private generateControlsUuid(values: ArrayControlsValue<C>[]): string[] {
+    return values.map((value) => this.valueToUuid?.(value) ?? uuid());
   }
 
   private _subscribe(reactControls: C): void {
@@ -147,16 +194,19 @@ interface ReactListOptions<C extends ReactArrayControls = ReactArrayControls> {
   touched?: boolean;
   validators?: ValidatorFn<ArrayControlsValue<C>[] | undefined>[];
   value?: ArrayControlsValue<C>[] | undefined;
+  valueToUuid?: ArrayListValueToUuid<C>;
 }
 
 export function formArrayList<
   C extends ReactArrayControls = ReactArrayControls
 >(options: ReactListOptions<C>): ReactArrayList<C> {
+  const { valueToControls, valueToUuid } = options;
   const value = options?.value || [];
 
   return new RolsterArrayList<HTMLElement, C>({
     ...options,
-    controls: value.map((value) => options.valueToControls(value)),
+    controls: value.map(valueToControls),
+    controlsUuid: value.map((v) => valueToUuid?.(v) ?? uuid()),
     defaultValue: value,
     uuid: uuid()
   });

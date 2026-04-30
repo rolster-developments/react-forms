@@ -9,11 +9,17 @@ import {
 } from './form-array-control.type';
 import { ReactArrayControls } from './form-array-group.type';
 
+export type ArrayListValueToUuid<
+  C extends ReactArrayControls = ReactArrayControls
+> = (value: ArrayControlsValue<C>) => string;
+
 export interface ReactArrayListOptions<
   C extends ReactArrayControls = ReactArrayControls
 > extends ReactArrayControlOptions<ArrayControlsValue<C>[]> {
   controls: C[];
   valueToControls: ArrayListValueToControls<C>;
+  controlsUuid?: string[];
+  valueToUuid?: ArrayListValueToUuid<C>;
 }
 
 export interface ReactArrayList<
@@ -21,4 +27,7 @@ export interface ReactArrayList<
 >
   extends
     ReactArrayControl<HTMLElement, ArrayControlsValue<C>[]>,
-    AbstractArrayList<C> {}
+    AbstractArrayList<C> {
+  controlsUuid: string[];
+  findControlsByUuid(uuid: string): Undefined<C>;
+}

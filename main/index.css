@@ -1,9 +1,68 @@
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f6f8;
+  margin: 0;
+  padding: 24px;
+  color: #222;
+}
+
 .employees {
   position: relative;
   display: flex;
   width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
   flex-direction: column;
-  row-gap: 8px;
+  row-gap: 12px;
+}
+
+.employees__title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+}
+
+.employees__status {
+  font-size: 12px;
+  color: #666;
+}
+
+.employees__status--valid {
+  color: #1f8a3a;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  flex: 1;
+}
+
+.field__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.field input {
+  padding: 6px 10px;
+  border: 1px solid #cfd3d8;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #4a7dff;
+  box-shadow: 0 0 0 3px rgba(74, 125, 255, 0.15);
+}
+
+.field__error {
+  font-size: 11px;
+  color: #c0392b;
 }
 
 .collection {
@@ -11,23 +70,104 @@
   display: flex;
   width: 100%;
   flex-direction: column;
-  row-gap: 4px;
+  row-gap: 12px;
+  margin-top: 8px;
 }
 
 .person {
   position: relative;
   display: flex;
   flex-direction: column;
-  row-gap: 8px;
+  row-gap: 12px;
+  padding: 12px;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background: #fff;
 }
 
-.person__body,
+.person__body {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 8px;
+  align-items: flex-end;
+}
+
 .person__phone {
   position: relative;
   display: flex;
-  column-gap: 8px;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 8px;
+  align-items: flex-end;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  border: 1px dashed #d8dde3;
 }
 
 .person__phone input.focus {
   color: blueviolet;
+}
+
+.person__phone__meta {
+  display: flex;
+  flex-direction: column;
+  row-gap: 2px;
+  min-width: 280px;
+}
+
+.person__phone__meta__title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.person__phone__meta__value {
+  font-family: monospace;
+  font-size: 11px;
+  color: #444;
+  word-break: break-all;
+}
+
+.person__phone__remove {
+  align-self: flex-end;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #c0392b;
+  color: #c0392b;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.person__phone__remove:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.actions button {
+  padding: 6px 12px;
+  background: #4a7dff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.actions button:hover {
+  background: #355ec9;
 }
