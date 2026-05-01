@@ -9,6 +9,8 @@ import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
 import {
+  ReactAreaArrayControl,
+  ReactAreaArrayVoid,
   ReactArrayAction,
   ReactArrayControl,
   ReactArrayControlOptions,
@@ -300,4 +302,26 @@ export function inputArrayControl<T = any>(
   validators?: ValidatorFn<T>[]
 ): ReactInputArrayControl<T> {
   return rolsterArrayControl<HTMLInputElement>(options, validators);
+}
+
+export function areaArrayControl(): ReactAreaArrayVoid;
+export function areaArrayControl(
+  options: ReactValueOptions<string>
+): ReactAreaArrayControl;
+export function areaArrayControl(
+  options: ReactControlOptions<string>
+): ReactAreaArrayControl;
+export function areaArrayControl(
+  value: undefined,
+  validators?: ValidatorFn<string>[]
+): ReactAreaArrayVoid;
+export function areaArrayControl(
+  value: string,
+  validators?: ValidatorFn<string>[]
+): ReactAreaArrayControl;
+export function areaArrayControl(
+  options?: ReactControlOptions<string> | string,
+  validators?: ValidatorFn<string>[]
+): ReactAreaArrayControl | ReactAreaArrayVoid {
+  return rolsterArrayControl<HTMLTextAreaElement>(options, validators);
 }

@@ -8,6 +8,8 @@ import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { useCallback, useRef, useState } from 'react';
 import { errorsInControl } from './form-control.helper';
 import {
+  ReactAreaControl,
+  ReactAreaVoid,
   ReactFormControl,
   ReactHtmlControl,
   ReactInputControl
@@ -238,4 +240,26 @@ export function useInputControl<T>(
   validators?: ValidatorFn<T>[]
 ): ReactInputControl<T> {
   return useControl<HTMLInputElement>(options, validators);
+}
+
+export function useAreaControl(): ReactAreaVoid;
+export function useAreaControl(
+  options: ReactValueOptions<string>
+): ReactAreaControl;
+export function useAreaControl(
+  options: ReactControlOptions<string>
+): ReactAreaControl;
+export function useAreaControl(
+  value: undefined,
+  validators?: ValidatorFn<string>[]
+): ReactAreaVoid;
+export function useAreaControl(
+  value: string,
+  validators?: ValidatorFn<string>[]
+): ReactAreaControl;
+export function useAreaControl(
+  options?: ReactControlOptions<string> | string,
+  validators?: ValidatorFn<string>[]
+): ReactAreaControl | ReactAreaVoid {
+  return useControl<HTMLTextAreaElement>(options, validators);
 }

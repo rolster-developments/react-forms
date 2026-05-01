@@ -1,6 +1,6 @@
 {
   "name": "@rolster/react-forms",
-  "version": "19.4.7",
+  "version": "19.4.8",
   "type": "module",
   "description": "It implements a set of classes that allow managing the control of states of the input components in React",
   "license": "MIT",
