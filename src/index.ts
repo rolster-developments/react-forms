@@ -3,6 +3,7 @@ import { ReactFormControl } from './form-control/form-control.type';
 
 export * from './form-array/form-array-control.type';
 export {
+  areaArrayControl,
   formArrayControl,
   inputArrayControl,
   reactArrayControl
@@ -15,6 +16,7 @@ export * from './form-array/form-array.type';
 export { useFormArray } from './form-array/form-array';
 export * from './form-control/form-control.type';
 export {
+  useAreaControl,
   useFormControl,
   useInputControl,
   useReactControl
