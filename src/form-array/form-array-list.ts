@@ -41,7 +41,7 @@ class RolsterArrayList<
   extends RolsterArrayControl<E, ArrayControlsValue<C>[]>
   implements ReactArrayList<C>
 {
-  public readonly controls: C[];
+  private _controls: C[];
 
   public readonly controlsUuid: string[];
 
@@ -66,7 +66,7 @@ class RolsterArrayList<
 
     this.valueToControls = valueToControls;
     this.valueToUuid = valueToUuid;
-    this.controls = controls;
+    this._controls = controls;
     this.controlsUuid = controlsUuid ?? controls.map(() => uuid());
 
     this.valid =
@@ -85,10 +85,11 @@ class RolsterArrayList<
     });
   }
 
-  public setDefaultValue(value: ArrayControlsValue<C>[]): void {
-    console.log(value)
-    console.log(this.generateControlsUuid(value))
+  public get controls(): C[] {
+    return this._controls;
+  }
 
+  public setDefaultValue(value: ArrayControlsValue<C>[]): void {
     this.refresh('list', {
       controls: value.map(this.valueToControls),
       controlsUuid: this.generateControlsUuid(value),
@@ -104,9 +105,6 @@ class RolsterArrayList<
   }
 
   public setValue(value: ArrayControlsValue<C>[]): void {
-    console.log(value)
-    console.log(this.generateControlsUuid(value))
-    
     this.refresh('list', {
       controls: value.map(this.valueToControls),
       controlsUuid: this.generateControlsUuid(value),
@@ -127,7 +125,7 @@ class RolsterArrayList<
     const _uuid = this.valueToUuid?.(controlsToValue(controls)) ?? uuid();
 
     this.refresh('list', {
-      controls: [...this.controls, controls],
+      controls: [...this._controls, controls],
       controlsUuid: [...this.controlsUuid, _uuid]
     });
   }
@@ -136,7 +134,7 @@ class RolsterArrayList<
     const _controls: C[] = [];
     const _controlsUuid: string[] = [];
 
-    this.controls.forEach((currentControls, index) => {
+    this._controls.forEach((currentControls, index) => {
       if (currentControls !== controls) {
         _controls.push(currentControls);
         _controlsUuid.push(this.controlsUuid[index]);
@@ -152,7 +150,7 @@ class RolsterArrayList<
   public findControlsByUuid(uuid: string): Undefined<C> {
     const index = this.controlsUuid.indexOf(uuid);
 
-    return index >= 0 ? this.controls[index] : undefined;
+    return index >= 0 ? this._controls[index] : undefined;
   }
 
   protected builder(
@@ -177,11 +175,13 @@ class RolsterArrayList<
   private _subscribe(reactControls: C): void {
     Object.values(reactControls).forEach((control) => {
       control.subscribe((action, _control) => {
-        const _reactControls = this.controls.map((_controls) =>
+        const _reactControls = this._controls.map((_controls) =>
           reactControls !== _controls
             ? _controls
             : replaceControl(reactControls, _control)
         );
+
+        this._controls = _reactControls;
 
         this.refresh(action, { controls: _reactControls });
       });

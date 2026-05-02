@@ -98,7 +98,7 @@ export class RolsterArrayGroup<
 > implements ReactArrayGroup<C, R> {
   public readonly uuid: string;
 
-  public readonly controls: C;
+  private _controls: C;
 
   public readonly value: ControlsValue<C>;
 
@@ -138,7 +138,7 @@ export class RolsterArrayGroup<
 
   constructor(options: ArrayGroupOptions<C, R>) {
     this.uuid = options.uuid;
-    this.controls = options.controls;
+    this._controls = options.controls;
     this.value = options.value;
     this.resource = options.resource;
     this.dirty = !!options.dirty;
@@ -158,7 +158,9 @@ export class RolsterArrayGroup<
     this.validators = options.validators;
 
     this.subscriberControl = (action, control) => {
-      const controls = replaceControl(this.controls, control);
+      const controls = replaceControl(this._controls, control);
+
+      this._controls = controls;
 
       this.refresh(action, {
         ...refactorForControls(action, this, controls),
@@ -167,17 +169,21 @@ export class RolsterArrayGroup<
     };
   }
 
+  public get controls(): C {
+    return this._controls;
+  }
+
   public subscribe(subscriber: ReactArrayGroupSubscriber<C, R>): void {
     this.subscriber = subscriber;
 
-    Object.values(this.controls).forEach((control) => {
+    Object.values(this._controls).forEach((control) => {
       control.subscribe(this.subscriberControl);
     });
   }
 
   public setValidators(validators: ValidatorGroupFn<C, any>[]): void {
     this.refresh('validators', {
-      ...refactorForValid(this.controls, validators),
+      ...refactorForValid(this._controls, validators),
       validators
     });
   }
@@ -187,14 +193,21 @@ export class RolsterArrayGroup<
   }
 
   public reset(): void {
-    Object.values(this.controls).forEach((control) => {
+    Object.values(this._controls).forEach((control) => {
       control.reset();
     });
   }
 
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
     this.subscriber &&
-      this.subscriber(action, new RolsterArrayGroup({ ...this, ...options }));
+      this.subscriber(
+        action,
+        new RolsterArrayGroup({
+          ...this,
+          ...options,
+          controls: this._controls
+        })
+      );
   }
 }
 
