@@ -172,18 +172,22 @@ class RolsterArrayList<
     return values.map((value) => this.valueToUuid?.(value) ?? uuid());
   }
 
-  private _subscribe(reactControls: C): void {
-    Object.values(reactControls).forEach((control) => {
+  private _subscribe(controls: C): void {
+    Object.values(controls).forEach((control) => {
       control.subscribe((action, _control) => {
-        const _reactControls = this._controls.map((_controls) =>
-          reactControls !== _controls
-            ? _controls
-            : replaceControl(reactControls, _control)
-        );
+        const _controls = this._controls.map((_controls) => {
+          const currentControl = Object.values(_controls).some(
+            (currentControl) => currentControl.uuid === _control.uuid
+          );
 
-        this._controls = _reactControls;
+          return currentControl
+            ? replaceControl(_controls, _control)
+            : _controls;
+        });
 
-        this.refresh(action, { controls: _reactControls });
+        this._controls = _controls;
+
+        this.refresh(action, { controls: _controls });
       });
     });
   }
