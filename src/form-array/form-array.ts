@@ -255,6 +255,8 @@ export function useFormArray<
   const reset = useCallback(() => {
     refArrayValue.current.forEach((group) => group.reset());
 
+    refArrayGroups.current = new Map();
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(refArrayValue.current, state.validators)
