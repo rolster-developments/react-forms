@@ -5,7 +5,9 @@ import {
   someErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
+
 import { useCallback, useRef, useState } from 'react';
+
 import { errorsInControl } from './form-control.helper';
 import {
   ReactAreaControl,
@@ -24,8 +26,8 @@ interface ControlState<T = any> {
   disabled: boolean;
   errors: ValidatorError<any>[];
   focused: boolean;
-  value: T;
   touched: boolean;
+  value: T;
   validators?: ValidatorFn<T>[];
 }
 

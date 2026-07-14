@@ -11,7 +11,9 @@ import {
   verifyAnyTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
+
 import { v4 as uuid } from 'uuid';
+
 import {
   ReactArrayAction,
   ReactArrayControlSubscriber
@@ -27,8 +29,8 @@ interface ArrayGroupOptions<
   C extends ReactArrayControls = ReactArrayControls,
   R = any
 > extends FormArrayGroupOptions<C, R> {
-  value: ControlsValue<C>;
   errors: ValidatorError<any>[];
+  value: ControlsValue<C>;
   dirties?: boolean;
   dirty?: boolean;
   touched?: boolean;

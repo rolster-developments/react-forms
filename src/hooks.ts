@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
+
+import { ReactFormArray } from './form-array/form-array.type';
 import {
   ReactArrayControls,
   ReactArrayGroup
 } from './form-array/form-array-group.type';
-import { ReactFormArray } from './form-array/form-array.type';
 
 interface FormArrayGroupSelectProps<
   C extends ReactArrayControls = ReactArrayControls,

@@ -1,5 +1,7 @@
 import { required } from '@rolster/validators/helpers';
+
 import React, { useEffect } from 'react';
+
 import {
   formArrayGroup,
   formArrayList,
@@ -14,11 +16,12 @@ import {
   useFormGroup,
   useInputControl
 } from '../src';
+
 import './index.css';
 
 interface PhoneArrayControls extends ReactArrayControls {
-  id: ReactInputArrayControl<string>;
   country: ReactInputArrayControl<string>;
+  id: ReactInputArrayControl<string>;
   number: ReactInputArrayControl<string>;
 }
 
@@ -30,11 +33,11 @@ interface PersonArrayControls extends ReactArrayControls {
 }
 
 interface EmployeeControls extends ReactControls {
-  superuser: ReactInputControl<string>;
-  role: ReactInputControl<string>;
   address: ReactInputControl<string>;
   age: ReactInputControl<number>;
   persons: ReactFormArray<PersonArrayControls>;
+  role: ReactInputControl<string>;
+  superuser: ReactInputControl<string>;
 }
 
 export function App() {

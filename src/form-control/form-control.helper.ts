@@ -1,5 +1,5 @@
-import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { formControlIsValid } from '@rolster/forms/helpers';
+import { ValidatorError, ValidatorFn } from '@rolster/validators';
 
 export function errorsInControl<T = any>(
   value: T,
