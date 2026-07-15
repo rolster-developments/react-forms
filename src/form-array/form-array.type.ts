@@ -1,6 +1,5 @@
 import { AbstractArray } from '@rolster/forms';
 import { RefObject } from 'react';
-
 import { ReactArrayControls, ReactArrayGroup } from './form-array-group.type';
 
 export interface ReactFormArray<

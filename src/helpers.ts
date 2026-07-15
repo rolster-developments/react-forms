@@ -1,5 +1,4 @@
 import { reduceControlsToArray } from '@rolster/forms/helpers';
-
 import { ReactFormControl } from './form-control/form-control.type';
 import { ReactControls, ReactGroup } from './form-group/form-group.type';
 

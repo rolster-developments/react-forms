@@ -8,7 +8,6 @@ import {
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
-
 import {
   ReactAreaArrayControl,
   ReactAreaArrayVoid,
