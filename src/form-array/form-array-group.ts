@@ -11,7 +11,6 @@ import {
   verifyAnyTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-
 import { v4 as uuid } from 'uuid';
 
 import {
@@ -201,7 +200,7 @@ export class RolsterArrayGroup<
   }
 
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
-    this.subscriber &&
+    if (this.subscriber) {
       this.subscriber(
         action,
         new RolsterArrayGroup({
@@ -210,6 +209,7 @@ export class RolsterArrayGroup<
           controls: this._controls
         })
       );
+    }
   }
 }
 

@@ -5,7 +5,6 @@ import {
   verifyAllTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
-
 import { v4 as uuid } from 'uuid';
 
 import { RolsterArrayControl } from './form-array-control';

@@ -6,7 +6,6 @@ import {
   someErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
-
 import { RefObject } from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -92,23 +91,33 @@ export class RolsterArrayControl<
   }
 
   public focus(): void {
-    this.unfocused && this.refresh('focused', { focused: true });
+    if (this.unfocused) {
+      this.refresh('focused', { focused: true });
+    }
   }
 
   public blur(): void {
-    this.focused && this.refresh('focused', { focused: false, touched: true });
+    if (this.focused) {
+      this.refresh('focused', { focused: false, touched: true });
+    }
   }
 
   public disable(): void {
-    this.enabled && this.refresh('disabled', { disabled: true });
+    if (this.enabled) {
+      this.refresh('disabled', { disabled: true });
+    }
   }
 
   public enable(): void {
-    this.disabled && this.refresh('disabled', { disabled: false });
+    if (this.disabled) {
+      this.refresh('disabled', { disabled: false });
+    }
   }
 
   public touch(): void {
-    this.untouched && this.refresh('touched', { touched: true });
+    if (this.untouched) {
+      this.refresh('touched', { touched: true });
+    }
   }
 
   public setDefaultValue(value: T): void {
