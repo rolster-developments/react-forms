@@ -23,6 +23,8 @@ export {
 export * from './form-control/form-control.type';
 export { useFormGroup } from './form-group/form-group';
 export * from './form-group/form-group.type';
+export { useFormList, useReactList } from './form-list/form-list';
+export * from './form-list/form-list.type';
 export { useNumberRefControl, useTextRefControl } from './form-ref/form-ref';
 export * from './helpers';
 export * from './hooks';
