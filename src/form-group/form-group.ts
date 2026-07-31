@@ -26,8 +26,6 @@ interface GroupState<C extends ReactControls> {
 
 interface GroupStatus {
   dirty: boolean[];
-  disabled: boolean[];
-  focused: boolean[];
   touched: boolean[];
   value: any[];
 }
@@ -54,23 +52,17 @@ function checkPartialSuccess(status: boolean[]): boolean {
 
 function statusInControls<C extends ReactControls>(controls: C): GroupStatus {
   const dirty: boolean[] = [];
-  const disabled: boolean[] = [];
-  const focused: boolean[] = [];
   const touched: boolean[] = [];
   const value: any[] = [];
 
   Object.values(controls).forEach((control) => {
     dirty.push(control.dirty);
-    disabled.push(control.disabled);
-    focused.push((control as any).focused);
     touched.push(control.touched);
     value.push(control.value);
   });
 
   return {
     dirty,
-    disabled,
-    focused,
     touched,
     value
   };
@@ -153,23 +145,7 @@ export function useFormGroup<C extends ReactControls>(
       formGroupStatus.touched
     );
 
-    const disabledChanged = !arraysShallowEqual(
-      formGroupPrev.disabled,
-      formGroupStatus.disabled
-    );
-
-    const focusedChanged = !arraysShallowEqual(
-      formGroupPrev.focused,
-      formGroupStatus.focused
-    );
-
-    if (
-      !valueChanged &&
-      !dirtyChanged &&
-      !touchedChanged &&
-      !disabledChanged &&
-      !focusedChanged
-    ) {
+    if (!valueChanged && !dirtyChanged && !touchedChanged) {
       return;
     }
 

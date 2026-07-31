@@ -216,6 +216,60 @@ describe('useFormGroup', () => {
     });
   });
 
+  describe('render behavior', () => {
+    function renderCountedGroup() {
+      const renders = { count: 0 };
+
+      const render = renderHook(() => {
+        renders.count++;
+
+        const name = useFormControl<string>('');
+        const formGroup = useFormGroup({ name });
+
+        return { formGroup, name };
+      });
+
+      return { ...render, renders };
+    }
+
+    it('should not re-render the consumer when a control focus changes', () => {
+      const { renders, result } = renderCountedGroup();
+
+      const initialRenders = renders.count;
+
+      act(() => {
+        result.current.name.focus();
+      });
+
+      expect(renders.count - initialRenders).toBe(1);
+    });
+
+    it('should not re-render the consumer when a control disabled changes', () => {
+      const { renders, result } = renderCountedGroup();
+
+      const initialRenders = renders.count;
+
+      act(() => {
+        result.current.name.disable();
+      });
+
+      expect(renders.count - initialRenders).toBe(1);
+    });
+
+    it('should re-render the consumer once when a control value changes', () => {
+      const { renders, result } = renderCountedGroup();
+
+      const initialRenders = renders.count;
+
+      act(() => {
+        result.current.name.setValue('rolster');
+      });
+
+      expect(result.current.formGroup.value).toEqual({ name: 'rolster' });
+      expect(renders.count - initialRenders).toBe(2);
+    });
+  });
+
   describe('reset', () => {
     it('should reset all the controls of the group', () => {
       const { result } = renderCredentialsGroup();
