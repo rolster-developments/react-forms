@@ -7,28 +7,11 @@ import {
   controlsToValue,
   createFormGroupOptions,
   formGroupIsValid,
-  verifyAllTrueInControls
+  verifyAllTrueInControls,
+  verifyAnyTrueInControls
 } from '@rolster/forms/helpers';
-import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './form-group.type';
-
-interface GroupState<C extends ReactControls> {
-  dirties: boolean;
-  dirty: boolean;
-  errors: ValidatorError[];
-  touched: boolean;
-  toucheds: boolean;
-  valid: boolean;
-  value: ControlsValue<C>;
-  validators?: ValidatorGroupFn<C>[];
-}
-
-interface GroupStatus {
-  dirty: boolean[];
-  touched: boolean[];
-  value: any[];
-}
 
 function refactorForValid<C extends ReactControls>(
   controls: C,
@@ -40,50 +23,6 @@ function refactorForValid<C extends ReactControls>(
     errors,
     valid: errors.length === 0 && verifyAllTrueInControls(controls, 'valid')
   };
-}
-
-function checkAllSuccess(status: boolean[]): boolean {
-  return status.every((value) => value);
-}
-
-function checkPartialSuccess(status: boolean[]): boolean {
-  return status.some((value) => value);
-}
-
-function statusInControls<C extends ReactControls>(controls: C): GroupStatus {
-  const dirty: boolean[] = [];
-  const touched: boolean[] = [];
-  const value: any[] = [];
-
-  Object.values(controls).forEach((control) => {
-    dirty.push(control.dirty);
-    touched.push(control.touched);
-    value.push(control.value);
-  });
-
-  return {
-    dirty,
-    touched,
-    value
-  };
-}
-
-function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
-  if (a === b) {
-    return true;
-  }
-
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function controlsShallowEqual(a: ReactControls, b: ReactControls): boolean {
@@ -109,6 +48,41 @@ function useStableControls<C extends ReactControls>(controls: C): C {
   return controlsRef.current;
 }
 
+interface GroupSnapshot {
+  valids: boolean[];
+  values: any[];
+}
+
+function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function snapshotInControls(controls: ReactControls): GroupSnapshot {
+  const valids: boolean[] = [];
+  const values: any[] = [];
+
+  Object.values(controls).forEach((control) => {
+    valids.push(control.valid);
+    values.push(control.value);
+  });
+
+  return { valids, values };
+}
+
+function useValidationSnapshot(controls: ReactControls): GroupSnapshot {
+  const snapshot = snapshotInControls(controls);
+  const snapshotRef = useRef(snapshot);
+
+  if (
+    !arraysShallowEqual(snapshotRef.current.values, snapshot.values) ||
+    !arraysShallowEqual(snapshotRef.current.valids, snapshot.valids)
+  ) {
+    snapshotRef.current = snapshot;
+  }
+
+  return snapshotRef.current;
+}
+
 export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C>
 ): ReactGroup<C>;
@@ -130,84 +104,24 @@ export function useFormGroup<C extends ReactControls>(
   const refControls = useRef(controls);
   refControls.current = controls;
 
-  const formGroupStatus = statusInControls(controls);
+  const [groupValidators, setGroupValidators] = useState(
+    () => formGroup.validators
+  );
 
-  const [state, setState] = useState<GroupState<C>>(() => {
-    return {
-      ...refactorForValid(formGroup.controls, formGroup.validators),
-      dirties: checkAllSuccess(formGroupStatus.dirty),
-      dirty: checkPartialSuccess(formGroupStatus.dirty),
-      touched: checkPartialSuccess(formGroupStatus.touched),
-      toucheds: checkAllSuccess(formGroupStatus.touched),
-      validators: formGroup.validators,
-      value: controlsToValue(formGroup.controls)
-    };
-  });
+  const snapshot = useValidationSnapshot(controls);
 
-  const refPrevFormGroupStatus = useRef<GroupStatus | null>(null);
+  const value = useMemo(
+    () => controlsToValue<C>(refControls.current),
+    [snapshot]
+  );
 
-  useEffect(() => {
-    const formGroupPrev = refPrevFormGroupStatus.current;
-
-    refPrevFormGroupStatus.current = formGroupStatus;
-
-    if (!formGroupPrev) {
-      return;
-    }
-
-    const valueChanged = !arraysShallowEqual(
-      formGroupPrev.value,
-      formGroupStatus.value
-    );
-
-    const dirtyChanged = !arraysShallowEqual(
-      formGroupPrev.dirty,
-      formGroupStatus.dirty
-    );
-
-    const touchedChanged = !arraysShallowEqual(
-      formGroupPrev.touched,
-      formGroupStatus.touched
-    );
-
-    if (!valueChanged && !dirtyChanged && !touchedChanged) {
-      return;
-    }
-
-    setState((state) => {
-      const next: GroupState<C> = { ...state };
-
-      if (valueChanged) {
-        const validResult = refactorForValid(
-          refControls.current,
-          state.validators
-        );
-
-        next.errors = validResult.errors;
-        next.valid = validResult.valid;
-        next.value = controlsToValue(refControls.current);
-      }
-
-      if (dirtyChanged) {
-        next.dirty = checkPartialSuccess(formGroupStatus.dirty);
-        next.dirties = checkAllSuccess(formGroupStatus.dirty);
-      }
-
-      if (touchedChanged) {
-        next.touched = checkPartialSuccess(formGroupStatus.touched);
-        next.toucheds = checkAllSuccess(formGroupStatus.touched);
-      }
-
-      return next;
-    });
-  });
+  const validation = useMemo(
+    () => refactorForValid(refControls.current, groupValidators),
+    [groupValidators, snapshot]
+  );
 
   const setValidators = useCallback((validators?: ValidatorGroupFn<C>[]) => {
-    setState((state) => ({
-      ...state,
-      ...refactorForValid(refControls.current, validators),
-      validators
-    }));
+    setGroupValidators(validators);
   }, []);
 
   const setValue = useCallback((value: Partial<ControlsValue<C>>) => {
@@ -224,21 +138,42 @@ export function useFormGroup<C extends ReactControls>(
     });
   }, []);
 
-  return useMemo(
-    () => ({
-      ...state,
+  return useMemo(() => {
+    const { errors, valid } = validation;
+
+    const dirty = verifyAnyTrueInControls(controls, 'dirty');
+    const dirties = verifyAllTrueInControls(controls, 'dirty');
+    const touched = verifyAnyTrueInControls(controls, 'touched');
+    const toucheds = verifyAllTrueInControls(controls, 'touched');
+
+    return {
       controls,
-      error: state.errors[0],
-      invalid: !state.valid,
-      pristine: !state.dirty,
-      pristines: !state.dirties,
+      dirties,
+      dirty,
+      error: errors[0],
+      errors,
+      invalid: !valid,
+      pristine: !dirty,
+      pristines: !dirties,
       reset,
       setValidators,
       setValue,
-      untouched: !state.touched,
-      untoucheds: !state.toucheds,
-      wrong: state.touched && !state.valid
-    }),
-    [controls, reset, setValidators, setValue, state]
-  );
+      touched,
+      toucheds,
+      untouched: !touched,
+      untoucheds: !toucheds,
+      valid,
+      validators: groupValidators,
+      value,
+      wrong: touched && !valid
+    };
+  }, [
+    controls,
+    groupValidators,
+    reset,
+    setValidators,
+    setValue,
+    validation,
+    value
+  ]);
 }

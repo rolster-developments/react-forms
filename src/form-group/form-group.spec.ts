@@ -184,6 +184,50 @@ describe('useFormGroup', () => {
       expect(result.current.formGroup.wrong).toBe(true);
     });
 
+    it('should not run the validators when a control interaction state changes', () => {
+      let executions = 0;
+
+      const countingValidator: ValidatorGroupFn<CredentialsControls> = () => {
+        executions++;
+
+        return undefined;
+      };
+
+      const { result } = renderCredentialsGroup([countingValidator]);
+
+      const initialExecutions = executions;
+
+      act(() => {
+        result.current.password.focus();
+      });
+
+      act(() => {
+        result.current.password.touch();
+      });
+
+      expect(executions).toBe(initialExecutions);
+    });
+
+    it('should run the validators when a control value changes', () => {
+      let executions = 0;
+
+      const countingValidator: ValidatorGroupFn<CredentialsControls> = () => {
+        executions++;
+
+        return undefined;
+      };
+
+      const { result } = renderCredentialsGroup([countingValidator]);
+
+      const initialExecutions = executions;
+
+      act(() => {
+        result.current.password.setValue('rolster');
+      });
+
+      expect(executions).toBeGreaterThan(initialExecutions);
+    });
+
     it('should revalidate the controls with setValidators', () => {
       const { result } = renderCredentialsGroup();
 
@@ -268,7 +312,7 @@ describe('useFormGroup', () => {
       });
 
       expect(result.current.formGroup.value).toEqual({ name: 'rolster' });
-      expect(renders.count - initialRenders).toBe(2);
+      expect(renders.count - initialRenders).toBe(1);
     });
   });
 
@@ -286,6 +330,18 @@ describe('useFormGroup', () => {
 
       expect(result.current).toBe(formGroup);
       expect(result.current.controls).toBe(formGroup.controls);
+    });
+
+    it('should keep the same value reference when a control interaction state changes', () => {
+      const { result } = renderCredentialsGroup();
+
+      const value = result.current.formGroup.value;
+
+      act(() => {
+        result.current.password.focus();
+      });
+
+      expect(result.current.formGroup.value).toBe(value);
     });
 
     it('should return a new group reference when a control value changes', () => {
