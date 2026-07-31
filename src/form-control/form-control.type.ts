@@ -5,14 +5,14 @@ export interface ReactAbstractControl<
   E extends HTMLElement = HTMLElement,
   T = any
 > extends AbstractValueControl<T> {
-  elementRef?: RefObject<E>;
+  elementRef?: RefObject<E | null>;
 }
 
 export interface ReactFormControl<
   E extends HTMLElement = HTMLElement,
   T = any
 > extends AbstractFormControl<T> {
-  elementRef?: RefObject<E>;
+  elementRef?: RefObject<E | null>;
 }
 
 export type ReactFormVoid<

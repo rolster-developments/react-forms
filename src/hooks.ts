@@ -36,7 +36,7 @@ export function useFormArrayGroupSelect<
       formSelect &&
       formArray.groups.find(({ uuid }) => formSelect.uuid === uuid)
     );
-  }, [formArray.value, formSelect]);
+  }, [formArray.groups, formSelect]);
 
   return { formGroup, setFormGroup };
 }
