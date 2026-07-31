@@ -73,6 +73,16 @@ describe('useFormArrayGroupSelect', () => {
     });
   });
 
+  it('should keep the same select reference when the component re-renders without changes', () => {
+    const { rerender, result } = renderFormArrayGroupSelect();
+
+    const groupSelect = result.current.groupSelect;
+
+    rerender();
+
+    expect(result.current.groupSelect).toBe(groupSelect);
+  });
+
   it('should return undefined when the selected group is removed', () => {
     const { result } = renderFormArrayGroupSelect();
 

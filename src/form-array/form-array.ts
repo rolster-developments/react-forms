@@ -12,7 +12,7 @@ import {
   verifyAllTrueInGroups
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFormArray } from './form-array.type';
 import { ReactArrayAction } from './form-array-control.type';
 import { ReactArrayControls, ReactArrayGroup } from './form-array-group.type';
@@ -263,28 +263,31 @@ export function useFormArray<
     }));
   }, []);
 
-  return {
-    ...state,
-    disable,
-    enable,
-    enabled: !state.disabled,
-    error: state.errors[0],
-    findByUuid,
-    hasError: formArrayHasError,
-    invalid: !state.valid,
-    merge,
-    pristine: !state.dirty,
-    pristines: !state.dirties,
-    push,
-    remove,
-    reset,
-    setDefaultValue,
-    setStartValue,
-    setValidators,
-    setValue,
-    someErrors: formArraySomeErrors,
-    untouched: !state.touched,
-    untoucheds: !state.toucheds,
-    wrong: state.touched && !state.valid
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      disable,
+      enable,
+      enabled: !state.disabled,
+      error: state.errors[0],
+      findByUuid,
+      hasError: formArrayHasError,
+      invalid: !state.valid,
+      merge,
+      pristine: !state.dirty,
+      pristines: !state.dirties,
+      push,
+      remove,
+      reset,
+      setDefaultValue,
+      setStartValue,
+      setValidators,
+      setValue,
+      someErrors: formArraySomeErrors,
+      untouched: !state.touched,
+      untoucheds: !state.toucheds,
+      wrong: state.touched && !state.valid
+    }),
+    [state]
+  );
 }

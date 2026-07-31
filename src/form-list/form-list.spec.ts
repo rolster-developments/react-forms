@@ -132,6 +132,16 @@ describe('useFormList memoization', () => {
     expect(result.current.remove).toBe(remove);
     expect(result.current.clear).toBe(clear);
   });
+
+  it('should keep the same list reference when the component re-renders without changes', () => {
+    const { rerender, result } = renderHook(() => useFormList(['react']));
+
+    const formList = result.current;
+
+    rerender();
+
+    expect(result.current).toBe(formList);
+  });
 });
 
 describe('useReactList', () => {

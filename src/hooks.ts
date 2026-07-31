@@ -38,5 +38,5 @@ export function useFormArrayGroupSelect<
     );
   }, [formArray.groups, formSelect]);
 
-  return { formGroup, setFormGroup };
+  return useMemo(() => ({ formGroup, setFormGroup }), [formGroup]);
 }

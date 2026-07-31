@@ -10,7 +10,7 @@ import {
   verifyAllTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './form-group.type';
 
 interface GroupState<C extends ReactControls> {
@@ -86,6 +86,29 @@ function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
   return true;
 }
 
+function controlsShallowEqual(a: ReactControls, b: ReactControls): boolean {
+  if (a === b) {
+    return true;
+  }
+
+  const keys = Object.keys(a);
+
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every((key) => a[key] === b[key])
+  );
+}
+
+function useStableControls<C extends ReactControls>(controls: C): C {
+  const controlsRef = useRef(controls);
+
+  if (!controlsShallowEqual(controlsRef.current, controls)) {
+    controlsRef.current = controls;
+  }
+
+  return controlsRef.current;
+}
+
 export function useFormGroup<C extends ReactControls>(
   options: FormGroupOptions<C>
 ): ReactGroup<C>;
@@ -102,10 +125,12 @@ export function useFormGroup<C extends ReactControls>(
     validators
   );
 
-  const refControls = useRef(formGroup.controls);
-  refControls.current = formGroup.controls;
+  const controls = useStableControls(formGroup.controls);
 
-  const formGroupStatus = statusInControls(formGroup.controls);
+  const refControls = useRef(controls);
+  refControls.current = controls;
+
+  const formGroupStatus = statusInControls(controls);
 
   const [state, setState] = useState<GroupState<C>>(() => {
     return {
@@ -199,18 +224,21 @@ export function useFormGroup<C extends ReactControls>(
     });
   }, []);
 
-  return {
-    ...state,
-    controls: formGroup.controls,
-    error: state.errors[0],
-    invalid: !state.valid,
-    pristine: !state.dirty,
-    pristines: !state.dirties,
-    reset,
-    setValidators,
-    setValue,
-    untouched: !state.touched,
-    untoucheds: !state.toucheds,
-    wrong: state.touched && !state.valid
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      controls,
+      error: state.errors[0],
+      invalid: !state.valid,
+      pristine: !state.dirty,
+      pristines: !state.dirties,
+      reset,
+      setValidators,
+      setValue,
+      untouched: !state.touched,
+      untoucheds: !state.toucheds,
+      wrong: state.touched && !state.valid
+    }),
+    [controls, reset, setValidators, setValue, state]
+  );
 }

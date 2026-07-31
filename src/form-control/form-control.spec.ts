@@ -323,6 +323,29 @@ describe('useFormControl', () => {
       expect(result.current.setValue).toBe(setValue);
       expect(result.current.touch).toBe(touch);
     });
+
+    it('should keep the same control reference when the component re-renders without changes', () => {
+      const { rerender, result } = renderHook(() => useFormControl('rolster'));
+
+      const control = result.current;
+
+      rerender();
+
+      expect(result.current).toBe(control);
+    });
+
+    it('should return a new control reference when the state changes', () => {
+      const { result } = renderHook(() => useFormControl<string>(''));
+
+      const control = result.current;
+
+      act(() => {
+        result.current.setValue('rolster');
+      });
+
+      expect(result.current).not.toBe(control);
+      expect(result.current.value).toBe('rolster');
+    });
   });
 });
 

@@ -220,6 +220,34 @@ describe('useFormArray', () => {
     });
   });
 
+  describe('memoization', () => {
+    it('should keep the same array reference when the component re-renders without changes', () => {
+      const { rerender, result } = renderHook(() =>
+        useFormArray<ContactControls>([createContactGroup('rolster')])
+      );
+
+      const formArray = result.current;
+
+      rerender();
+
+      expect(result.current).toBe(formArray);
+    });
+
+    it('should return a new array reference when a control value changes', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([createContactGroup('rolster')])
+      );
+
+      const formArray = result.current;
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('react');
+      });
+
+      expect(result.current).not.toBe(formArray);
+    });
+  });
+
   describe('disable and enable', () => {
     it('should toggle the disabled state of the array', () => {
       const { result } = renderHook(() => useFormArray<ContactControls>());

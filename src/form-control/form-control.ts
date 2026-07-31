@@ -5,7 +5,7 @@ import {
   someErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { errorsInControl } from './form-control.helper';
 import {
   ReactAreaControl,
@@ -146,32 +146,34 @@ function useControl<E extends HTMLElement, T = any>(
     [state.errors]
   );
 
-  const valid = state.errors.length === 0;
+  return useMemo(() => {
+    const valid = state.errors.length === 0;
 
-  return {
-    ...state,
-    blur,
-    disable,
-    elementRef,
-    enable,
-    enabled: !state.disabled,
-    error: state.errors[0],
-    focus,
-    hasError: formControlHasError,
-    invalid: !valid,
-    pristine: !state.dirty,
-    reset,
-    setDefaultValue,
-    setStartValue,
-    setValidators,
-    setValue,
-    someErrors: formControlSomeErrors,
-    touch,
-    unfocused: !state.focused,
-    untouched: !state.touched,
-    valid,
-    wrong: state.touched && !valid
-  };
+    return {
+      ...state,
+      blur,
+      disable,
+      elementRef,
+      enable,
+      enabled: !state.disabled,
+      error: state.errors[0],
+      focus,
+      hasError: formControlHasError,
+      invalid: !valid,
+      pristine: !state.dirty,
+      reset,
+      setDefaultValue,
+      setStartValue,
+      setValidators,
+      setValue,
+      someErrors: formControlSomeErrors,
+      touch,
+      unfocused: !state.focused,
+      untouched: !state.touched,
+      valid,
+      wrong: state.touched && !valid
+    };
+  }, [state]);
 }
 
 type ReactValueOptions<T> = Omit<ReactControlOptions<T>, 'validators'>;

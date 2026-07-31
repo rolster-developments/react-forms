@@ -1,5 +1,5 @@
 import { ValidatorFn } from '@rolster/validators';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useReactControl } from '../form-control/form-control';
 import { ReactFormList, ReactHtmlList } from './form-list.type';
 
@@ -31,12 +31,15 @@ export function useReactList<E extends HTMLElement, T = any>(
     control.setValue((current) => (current.length > 0 ? [] : current));
   }, [control.setValue]);
 
-  return {
-    ...control,
-    clear,
-    push,
-    remove
-  };
+  return useMemo(
+    () => ({
+      ...control,
+      clear,
+      push,
+      remove
+    }),
+    [clear, control, push, remove]
+  );
 }
 
 export function useFormList<T = any>(

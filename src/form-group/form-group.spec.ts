@@ -272,6 +272,35 @@ describe('useFormGroup', () => {
     });
   });
 
+  describe('memoization', () => {
+    it('should keep the same group reference when the component re-renders without changes', () => {
+      const { rerender, result } = renderHook(() => {
+        const name = useFormControl<string>('rolster');
+
+        return useFormGroup({ name });
+      });
+
+      const formGroup = result.current;
+
+      rerender();
+
+      expect(result.current).toBe(formGroup);
+      expect(result.current.controls).toBe(formGroup.controls);
+    });
+
+    it('should return a new group reference when a control value changes', () => {
+      const { result } = renderCredentialsGroup();
+
+      const formGroup = result.current.formGroup;
+
+      act(() => {
+        result.current.password.setValue('rolster');
+      });
+
+      expect(result.current.formGroup).not.toBe(formGroup);
+    });
+  });
+
   describe('reset', () => {
     it('should reset all the controls of the group', () => {
       const { result } = renderCredentialsGroup();
