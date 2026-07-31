@@ -167,6 +167,28 @@ describe('useFormArray', () => {
       expect(result.current.controls[0].name.value).toBe('react');
     });
 
+    it('should replace the group with a new instance when its validators change', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([createContactGroup('rolster')])
+      );
+
+      const nameRequired = ({ name }: ContactControls) =>
+        name.value
+          ? undefined
+          : { id: 'nameRequired', message: 'Name is required' };
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('');
+      });
+
+      act(() => {
+        result.current.groups[0].setValidators([nameRequired]);
+      });
+
+      expect(result.current.groups[0].errors[0]?.id).toBe('nameRequired');
+      expect(result.current.groups[0].valid).toBe(false);
+    });
+
     it('should replace the group with a new instance when a control changes', () => {
       const { result } = renderHook(() =>
         useFormArray<ContactControls>([createContactGroup('rolster')])
@@ -217,6 +239,74 @@ describe('useFormArray', () => {
       });
 
       expect(result.current.valid).toBe(false);
+    });
+  });
+
+  describe('state aggregation', () => {
+    it('should be touched when some group is touched and toucheds when all are', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([
+          createContactGroup('rolster'),
+          createContactGroup('react')
+        ])
+      );
+
+      act(() => {
+        result.current.groups[0].controls.name.touch();
+      });
+
+      expect(result.current.touched).toBe(true);
+      expect(result.current.toucheds).toBe(false);
+      expect(result.current.untouched).toBe(false);
+
+      act(() => {
+        result.current.groups[1].controls.name.touch();
+      });
+
+      expect(result.current.toucheds).toBe(true);
+      expect(result.current.untoucheds).toBe(false);
+    });
+
+    it('should be dirty when some group changes value and dirties when all change', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([
+          createContactGroup('rolster'),
+          createContactGroup('react')
+        ])
+      );
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('angular');
+      });
+
+      expect(result.current.dirty).toBe(true);
+      expect(result.current.dirties).toBe(false);
+      expect(result.current.pristine).toBe(false);
+
+      act(() => {
+        result.current.groups[1].controls.name.setValue('vue');
+      });
+
+      expect(result.current.dirties).toBe(true);
+      expect(result.current.pristines).toBe(false);
+    });
+
+    it('should clear the dirty state when the array is reset', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([createContactGroup('rolster')])
+      );
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('react');
+      });
+
+      expect(result.current.dirty).toBe(true);
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.dirty).toBe(false);
     });
   });
 

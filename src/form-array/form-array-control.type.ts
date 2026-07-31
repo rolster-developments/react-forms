@@ -27,7 +27,7 @@ export interface ReactArrayControl<
   T = any
 > extends AbstractArrayControl<T> {
   subscribe: (subscriber: ReactArrayControlSubscriber<E, T>) => void;
-  elementRef?: RefObject<E>;
+  elementRef?: RefObject<E | null>;
   validators?: ValidatorFn<T>[];
 }
 

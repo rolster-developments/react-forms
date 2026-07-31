@@ -47,6 +47,17 @@ function refactorForValid<C extends ReactArrayControls, R>(
   };
 }
 
+function refactorForStates<C extends ReactArrayControls, R>(
+  groups: ReactArrayGroup<C, R>[]
+) {
+  return {
+    dirties: groups.every(({ dirties }) => dirties),
+    dirty: groups.some(({ dirty }) => dirty),
+    touched: groups.some(({ touched }) => touched),
+    toucheds: groups.every(({ toucheds }) => toucheds)
+  };
+}
+
 function refactorForGroups<
   C extends ReactArrayControls,
   R,
@@ -54,6 +65,7 @@ function refactorForGroups<
 >(groups: G[], validators?: ValidatorArrayFn<C, R>[]) {
   return {
     ...refactorForValid(groups, validators),
+    ...refactorForStates(groups),
     groups,
     controls: groups.map(({ controls }) => controls),
     value: groups.map(({ controls }) => controlsToValue(controls))
@@ -66,8 +78,18 @@ function refactorForControls<
   G extends ReactArrayGroup<C, R>
 >(action: ReactArrayAction, state: ReactArrayState<C, R, G>, groups: G[]) {
   switch (action) {
+    case 'focused':
+    case 'touched':
+      return {
+        ...refactorForStates(groups),
+        groups
+      };
+
     case 'validators':
-      return refactorForValid(groups, state.validators);
+      return {
+        ...refactorForValid(groups, state.validators),
+        groups
+      };
 
     case 'reset':
     case 'list':
@@ -116,13 +138,10 @@ export function useFormArray<
   const [state, setState] = useState<ReactArrayState<C, R, G>>(() => {
     return {
       ...refactorForValid(refArrayValue.current, formArray.validators),
+      ...refactorForStates(refArrayValue.current),
       controls: refArrayValue.current.map(({ controls }) => controls),
-      dirty: false,
-      dirties: false,
       disabled: false,
       groups: refArrayValue.current,
-      touched: false,
-      toucheds: false,
       value: refArrayValue.current.map(({ controls }) =>
         controlsToValue(controls)
       ),

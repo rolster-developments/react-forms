@@ -64,7 +64,7 @@ export class RolsterArrayControl<
 
   public readonly validators?: ValidatorFn<T>[];
 
-  public elementRef?: RefObject<E>;
+  public elementRef?: RefObject<E | null>;
 
   protected subscriber?: ReactArrayControlSubscriber<E, T>;
 
