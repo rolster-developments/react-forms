@@ -12,7 +12,8 @@ import {
   ReactAreaVoid,
   ReactFormControl,
   ReactHtmlControl,
-  ReactInputControl
+  ReactInputControl,
+  ValueSetter
 } from './form-control.type';
 
 interface ReactControlOptions<T = any> extends FormControlOptions<T> {
@@ -27,6 +28,10 @@ interface ControlState<T = any> {
   touched: boolean;
   value: T;
   validators?: ValidatorFn<T>[];
+}
+
+function valueIsSetter<T>(value: T | ValueSetter<T>): value is ValueSetter<T> {
+  return typeof value === 'function';
 }
 
 function useControl<E extends HTMLElement, T = any>(
@@ -92,13 +97,21 @@ function useControl<E extends HTMLElement, T = any>(
     }));
   }, []);
 
-  const setValue = useCallback((value: T) => {
-    setState((state) => ({
-      ...state,
-      dirty: true,
-      errors: errorsInControl(value, state.validators),
-      value
-    }));
+  const setValue = useCallback((value: T | ValueSetter<T>) => {
+    setState((state) => {
+      const newValue = valueIsSetter(value) ? value(state.value) : value;
+
+      if (Object.is(newValue, state.value)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        dirty: true,
+        errors: errorsInControl(newValue, state.validators),
+        value: newValue
+      };
+    });
   }, []);
 
   const setValidators = useCallback((validators?: ValidatorFn<T>[]) => {

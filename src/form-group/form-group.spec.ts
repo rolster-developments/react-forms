@@ -23,7 +23,9 @@ const credentialsMatch: ValidatorGroupFn<CredentialsControls> = ({
     ? undefined
     : { id: 'credentialsMatch', message: 'Credentials do not match' };
 
-function renderCredentialsGroup(validators?: ValidatorGroupFn<CredentialsControls>[]) {
+function renderCredentialsGroup(
+  validators?: ValidatorGroupFn<CredentialsControls>[]
+) {
   return renderHook(() => {
     const password = useFormControl<string>('');
     const confirmation = useFormControl<string>('');

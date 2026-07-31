@@ -11,27 +11,25 @@ export function useReactList<E extends HTMLElement, T = any>(
 
   const push = useCallback(
     (item: T) => {
-      control.setValue([...control.value, item]);
+      control.setValue((current) => [...current, item]);
     },
-    [control.value, control.setValue]
+    [control.setValue]
   );
 
   const remove = useCallback(
     (item: T) => {
-      const value = control.value.filter((current) => current !== item);
+      control.setValue((current) => {
+        const value = current.filter((currentItem) => currentItem !== item);
 
-      if (value.length !== control.value.length) {
-        control.setValue(value);
-      }
+        return value.length === current.length ? current : value;
+      });
     },
-    [control.value, control.setValue]
+    [control.setValue]
   );
 
   const clear = useCallback(() => {
-    if (control.value.length > 0) {
-      control.setValue([]);
-    }
-  }, [control.value, control.setValue]);
+    control.setValue((current) => (current.length > 0 ? [] : current));
+  }, [control.setValue]);
 
   return {
     ...control,

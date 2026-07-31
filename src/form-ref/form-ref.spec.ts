@@ -136,9 +136,7 @@ describe('useTextRefControl', () => {
 
 describe('useNumberRefControl', () => {
   it('should convert the value of the input element to number', () => {
-    const { container, result } = renderRefInput(() =>
-      useNumberRefControl(0)
-    );
+    const { container, result } = renderRefInput(() => useNumberRefControl(0));
 
     const input = container.querySelector('input') as HTMLInputElement;
 

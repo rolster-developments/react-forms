@@ -5,10 +5,7 @@ import {
   inputArrayControl,
   reactArrayControl
 } from './form-array-control';
-import {
-  ReactArrayAction,
-  ReactArrayControl
-} from './form-array-control.type';
+import { ReactArrayAction, ReactArrayControl } from './form-array-control.type';
 
 const required: ValidatorFn<string> = (value) =>
   value ? undefined : { id: 'required', message: 'Value is required' };

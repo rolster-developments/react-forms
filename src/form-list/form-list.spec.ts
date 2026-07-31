@@ -40,6 +40,17 @@ describe('useFormList', () => {
 
       expect(result.current.value).toEqual(['react', 'angular']);
     });
+
+    it('should add all the items when push is called several times in the same tick', () => {
+      const { result } = renderHook(() => useFormList<string>());
+
+      act(() => {
+        result.current.push('react');
+        result.current.push('angular');
+      });
+
+      expect(result.current.value).toEqual(['react', 'angular']);
+    });
   });
 
   describe('remove', () => {
@@ -91,7 +102,9 @@ describe('useFormList', () => {
 
   describe('validators', () => {
     it('should evaluate validators over the list value', () => {
-      const { result } = renderHook(() => useFormList(['react'], [minTwoItems]));
+      const { result } = renderHook(() =>
+        useFormList(['react'], [minTwoItems])
+      );
 
       expect(result.current.valid).toBe(false);
       expect(result.current.error?.id).toBe('minItems');
@@ -102,6 +115,22 @@ describe('useFormList', () => {
 
       expect(result.current.valid).toBe(true);
     });
+  });
+});
+
+describe('useFormList memoization', () => {
+  it('should keep stable references of the list methods across renders', () => {
+    const { result } = renderHook(() => useFormList<string>());
+
+    const { clear, push, remove } = result.current;
+
+    act(() => {
+      result.current.push('react');
+    });
+
+    expect(result.current.push).toBe(push);
+    expect(result.current.remove).toBe(remove);
+    expect(result.current.clear).toBe(clear);
   });
 });
 

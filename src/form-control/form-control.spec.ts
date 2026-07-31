@@ -76,7 +76,9 @@ describe('useFormControl', () => {
     });
 
     it('should revalidate the value on each change', () => {
-      const { result } = renderHook(() => useFormControl<string>('', [required]));
+      const { result } = renderHook(() =>
+        useFormControl<string>('', [required])
+      );
 
       act(() => {
         result.current.setValue('react');
@@ -93,9 +95,51 @@ describe('useFormControl', () => {
     });
   });
 
+  describe('functional setValue', () => {
+    it('should update the value from the current value with an updater', () => {
+      const { result } = renderHook(() => useFormControl(10));
+
+      act(() => {
+        result.current.setValue((current) => current + 5);
+      });
+
+      expect(result.current.value).toBe(15);
+      expect(result.current.dirty).toBe(true);
+    });
+
+    it('should apply all the updaters called in the same tick', () => {
+      const { result } = renderHook(() => useFormControl(10));
+
+      act(() => {
+        result.current.setValue((current) => current + 1);
+        result.current.setValue((current) => current + 1);
+      });
+
+      expect(result.current.value).toBe(12);
+    });
+
+    it('should not change the state when the value does not change', () => {
+      const { result } = renderHook(() => useFormControl('rolster'));
+
+      act(() => {
+        result.current.setValue('rolster');
+      });
+
+      expect(result.current.dirty).toBe(false);
+
+      act(() => {
+        result.current.setValue((current) => current);
+      });
+
+      expect(result.current.dirty).toBe(false);
+    });
+  });
+
   describe('setStartValue', () => {
     it('should update the value without marking the control as dirty', () => {
-      const { result } = renderHook(() => useFormControl<string>('', [required]));
+      const { result } = renderHook(() =>
+        useFormControl<string>('', [required])
+      );
 
       act(() => {
         result.current.setStartValue('react');
@@ -203,7 +247,9 @@ describe('useFormControl', () => {
 
   describe('validation state', () => {
     it('should be wrong only when the control is touched and invalid', () => {
-      const { result } = renderHook(() => useFormControl<string>('', [required]));
+      const { result } = renderHook(() =>
+        useFormControl<string>('', [required])
+      );
 
       expect(result.current.wrong).toBe(false);
 

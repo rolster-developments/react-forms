@@ -8,10 +8,15 @@ export interface ReactAbstractControl<
   elementRef?: RefObject<E | null>;
 }
 
+export type ValueSetter<T> = (current: T) => T;
+
+export type ReactValueSetter<T> = (value: T | ValueSetter<T>) => void;
+
 export interface ReactFormControl<
   E extends HTMLElement = HTMLElement,
   T = any
 > extends AbstractFormControl<T> {
+  setValue: ReactValueSetter<T>;
   elementRef?: RefObject<E | null>;
 }
 

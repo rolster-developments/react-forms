@@ -1,6 +1,9 @@
 import { ValidatorFn } from '@rolster/validators';
 import { formArrayControl } from './form-array-control';
-import { ReactArrayAction, ReactHtmlArrayControl } from './form-array-control.type';
+import {
+  ReactArrayAction,
+  ReactHtmlArrayControl
+} from './form-array-control.type';
 import { formArrayList } from './form-array-list';
 import { ReactArrayList } from './form-array-list.type';
 
