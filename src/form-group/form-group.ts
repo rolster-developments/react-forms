@@ -10,7 +10,7 @@ import {
   verifyAllTrueInControls
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReactControls, ReactGroup } from './form-group.type';
 
 interface GroupState<C extends ReactControls> {
@@ -52,6 +52,30 @@ function checkPartialSuccess(status: boolean[]): boolean {
   return status.some((value) => value);
 }
 
+function statusInControls<C extends ReactControls>(controls: C): GroupStatus {
+  const dirty: boolean[] = [];
+  const disabled: boolean[] = [];
+  const focused: boolean[] = [];
+  const touched: boolean[] = [];
+  const value: any[] = [];
+
+  Object.values(controls).forEach((control) => {
+    dirty.push(control.dirty);
+    disabled.push(control.disabled);
+    focused.push((control as any).focused);
+    touched.push(control.touched);
+    value.push(control.value);
+  });
+
+  return {
+    dirty,
+    disabled,
+    focused,
+    touched,
+    value
+  };
+}
+
 function arraysShallowEqual(a: readonly any[], b: readonly any[]): boolean {
   if (a === b) {
     return true;
@@ -89,29 +113,7 @@ export function useFormGroup<C extends ReactControls>(
   const refControls = useRef(formGroup.controls);
   refControls.current = formGroup.controls;
 
-  const formGroupStatus = useMemo<GroupStatus>(() => {
-    const dirty: boolean[] = [];
-    const disabled: boolean[] = [];
-    const focused: boolean[] = [];
-    const touched: boolean[] = [];
-    const value: any[] = [];
-
-    Object.values(formGroup.controls).forEach((control) => {
-      dirty.push(control.dirty);
-      disabled.push(control.disabled);
-      focused.push((control as any).focused);
-      touched.push(control.touched);
-      value.push(control.value);
-    });
-
-    return {
-      dirty,
-      disabled,
-      focused,
-      touched,
-      value
-    };
-  }, [formGroup.controls]);
+  const formGroupStatus = statusInControls(formGroup.controls);
 
   const [state, setState] = useState<GroupState<C>>(() => {
     return {
