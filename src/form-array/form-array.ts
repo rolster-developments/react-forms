@@ -12,7 +12,7 @@ import {
   verifyAllTrueInGroups
 } from '@rolster/forms/helpers';
 import { ValidatorError } from '@rolster/validators';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ReactFormArray } from './form-array.type';
 import { ReactArrayAction } from './form-array-control.type';
 import { ReactArrayControls, ReactArrayGroup } from './form-array-group.type';
@@ -134,6 +134,7 @@ export function useFormArray<
 
   const refArrayValue = useRef(formArray.groups || []);
   const refArrayGroups = useRef<Map<string, G>>(new Map());
+  const refSubscribed = useRef(false);
 
   const [state, setState] = useState<ReactArrayState<C, R, G>>(() => {
     return {
@@ -151,6 +152,8 @@ export function useFormArray<
 
   const subscriber = useCallback(
     (action: ReactArrayAction, group: ReactArrayGroup<C, R>) => {
+      refArrayGroups.current.set(group.uuid, group as G);
+
       setState((state) => {
         const groups = state.groups.map((currentGroup) => {
           return currentGroup.uuid === group.uuid ? group : currentGroup;
@@ -165,20 +168,25 @@ export function useFormArray<
     []
   );
 
-  useEffect(() => {
-    const previousGroups = refArrayGroups.current;
-    const currentGroups = new Map<string, G>();
+  const subscribeGroups = useCallback((groups: G[]) => {
+    groups.forEach((group) => {
+      group.subscribe(subscriber);
 
-    state.groups.forEach((group) => {
-      currentGroups.set(group.uuid, group);
-
-      if (previousGroups.get(group.uuid) !== group) {
-        group.subscribe(subscriber);
-      }
+      refArrayGroups.current.set(group.uuid, group);
     });
+  }, []);
 
-    refArrayGroups.current = currentGroups;
-  }, [state.groups]);
+  const replaceGroups = useCallback((groups: G[]) => {
+    refArrayGroups.current = new Map();
+
+    subscribeGroups(groups);
+  }, []);
+
+  if (!refSubscribed.current) {
+    refSubscribed.current = true;
+
+    subscribeGroups(refArrayValue.current);
+  }
 
   const disable = useCallback(() => {
     setState((state) => ({ ...state, disabled: true }));
@@ -189,6 +197,8 @@ export function useFormArray<
   }, []);
 
   const setValue = useCallback((groups: G[]) => {
+    replaceGroups(groups);
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(groups, state.validators)
@@ -196,6 +206,8 @@ export function useFormArray<
   }, []);
 
   const setStartValue = useCallback((groups: G[]) => {
+    replaceGroups(groups);
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(groups, state.validators)
@@ -203,6 +215,8 @@ export function useFormArray<
   }, []);
 
   const setDefaultValue = useCallback((groups: G[]) => {
+    replaceGroups(groups);
+
     setState((state) => ({
       ...state,
       ...refactorForGroups(groups, state.validators)
@@ -212,8 +226,7 @@ export function useFormArray<
   }, []);
 
   const push = useCallback((group: G) => {
-    refArrayGroups.current.set(group.uuid, group);
-    group.subscribe(subscriber);
+    subscribeGroups([group]);
 
     setState((state) => ({
       ...state,
@@ -222,10 +235,7 @@ export function useFormArray<
   }, []);
 
   const merge = useCallback((groups: G[]) => {
-    groups.forEach((group) => {
-      group.subscribe(subscriber);
-      refArrayGroups.current.set(group.uuid, group);
-    });
+    subscribeGroups(groups);
 
     setState((state) => ({
       ...state,
@@ -272,14 +282,18 @@ export function useFormArray<
   );
 
   const reset = useCallback(() => {
-    refArrayValue.current.forEach((group) => group.reset());
+    const groups = refArrayValue.current.map((group) => {
+      return refArrayGroups.current.get(group.uuid) ?? group;
+    });
 
-    refArrayGroups.current = new Map();
+    replaceGroups(groups);
 
     setState((state) => ({
       ...state,
-      ...refactorForGroups(refArrayValue.current, state.validators)
+      ...refactorForGroups(groups, state.validators)
     }));
+
+    groups.forEach((group) => group.reset());
   }, []);
 
   return useMemo(

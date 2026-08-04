@@ -358,6 +358,22 @@ describe('useFormArray', () => {
   });
 
   describe('reset', () => {
+    it('should restore the value of the controls modified in the group', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>([createContactGroup('rolster')])
+      );
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('react');
+      });
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.value).toEqual([{ name: 'rolster' }]);
+    });
+
     it('should restore the initial groups of the array', () => {
       const { result } = renderHook(() =>
         useFormArray<ContactControls>([createContactGroup('rolster')])

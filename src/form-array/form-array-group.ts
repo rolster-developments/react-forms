@@ -167,6 +167,8 @@ export class RolsterArrayGroup<
         controls
       });
     };
+
+    this.subscribeControls();
   }
 
   public get controls(): C {
@@ -176,9 +178,7 @@ export class RolsterArrayGroup<
   public subscribe(subscriber: ReactArrayGroupSubscriber<C, R>): void {
     this.subscriber = subscriber;
 
-    Object.values(this._controls).forEach((control) => {
-      control.subscribe(this.subscriberControl);
-    });
+    this.subscribeControls();
   }
 
   public setValidators(validators: ValidatorGroupFn<C, any>[]): void {
@@ -198,16 +198,23 @@ export class RolsterArrayGroup<
     });
   }
 
+  private subscribeControls(): void {
+    Object.values(this._controls).forEach((control) => {
+      control.subscribe(this.subscriberControl);
+    });
+  }
+
   protected refresh(action: ReactArrayAction, options: Options<C, R>): void {
     if (this.subscriber) {
-      this.subscriber(
-        action,
-        new RolsterArrayGroup({
-          ...this,
-          ...options,
-          controls: this._controls
-        })
-      );
+      const group = new RolsterArrayGroup<C, R>({
+        ...this,
+        ...options,
+        controls: this._controls
+      });
+
+      group.subscriber = this.subscriber;
+
+      this.subscriber(action, group);
     }
   }
 }
