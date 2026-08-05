@@ -50,6 +50,35 @@ describe('useFormArray', () => {
         { name: 'react' }
       ]);
     });
+
+    it('should create an array with the groups of a factory', () => {
+      const { result } = renderHook(() =>
+        useFormArray<ContactControls>(() => [createContactGroup('rolster')])
+      );
+
+      expect(result.current.value).toEqual([{ name: 'rolster' }]);
+    });
+
+    it('should invoke the factory of the groups only on the first render', () => {
+      let invocations = 0;
+
+      const { rerender, result } = renderHook(() =>
+        useFormArray<ContactControls>(() => {
+          invocations++;
+
+          return [createContactGroup('rolster')];
+        })
+      );
+
+      act(() => {
+        result.current.groups[0].controls.name.setValue('react');
+      });
+
+      rerender();
+
+      expect(invocations).toBe(1);
+      expect(result.current.value).toEqual([{ name: 'react' }]);
+    });
   });
 
   describe('push', () => {

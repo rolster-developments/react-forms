@@ -1,3 +1,4 @@
+import { evalValueOrFunction } from '@rolster/commons';
 import {
   ArrayControlsValue,
   FormArrayOptions,
@@ -124,12 +125,24 @@ export function useFormArray<
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 >(
-  options?: FormArrayOptions<C, R, G> | ReactArrayGroup<C, R>[],
+  groups: () => ReactArrayGroup<C, R>[],
+  validators?: ValidatorArrayFn<C, R>[]
+): ReactFormArray<C, R, G>;
+export function useFormArray<
+  C extends ReactArrayControls,
+  R = any,
+  G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
+>(
+  options?:
+    | FormArrayOptions<C, R, G>
+    | ValueOrFunction<ReactArrayGroup<C, R>[]>,
   validators?: ValidatorArrayFn<C, R>[]
 ): ReactFormArray<C, R, G> {
-  const formArray = createFormArrayOptions<C, R, G, FormArrayOptions<C, R, G>>(
-    options,
-    validators
+  const [formArray] = useState(() =>
+    createFormArrayOptions<C, R, G, FormArrayOptions<C, R, G>>(
+      evalValueOrFunction(options),
+      validators
+    )
   );
 
   const refArrayValue = useRef(formArray.groups || []);

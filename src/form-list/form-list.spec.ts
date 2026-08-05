@@ -23,6 +23,33 @@ describe('useFormList', () => {
     expect(result.current.value).toEqual(['react', 'angular']);
   });
 
+  it('should create a list with the value of a factory', () => {
+    const { result } = renderHook(() => useFormList(() => ['react']));
+
+    expect(result.current.value).toEqual(['react']);
+  });
+
+  it('should invoke the factory of the value only on the first render', () => {
+    let invocations = 0;
+
+    const { rerender, result } = renderHook(() =>
+      useFormList(() => {
+        invocations++;
+
+        return ['react'];
+      })
+    );
+
+    act(() => {
+      result.current.push('angular');
+    });
+
+    rerender();
+
+    expect(invocations).toBe(1);
+    expect(result.current.value).toEqual(['react', 'angular']);
+  });
+
   describe('push', () => {
     it('should add the item to the list and mark it as dirty', () => {
       const { result } = renderHook(() => useFormList<string>());

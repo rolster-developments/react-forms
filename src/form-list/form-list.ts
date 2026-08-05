@@ -1,13 +1,18 @@
+import { evalValueOrFunction } from '@rolster/commons';
 import { ValidatorFn } from '@rolster/validators';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useReactControl } from '../form-control/form-control';
 import { ReactFormList, ReactHtmlList } from './form-list.type';
 
 export function useReactList<E extends HTMLElement, T = any>(
-  value?: T[],
+  value?: ValueOrFunction<T[]>,
   validators?: ValidatorFn<T[]>[]
 ): ReactFormList<E, T> {
-  const control = useReactControl<E, T[]>(value || [], validators);
+  const [initialValue] = useState<T[]>(() => {
+    return value ? evalValueOrFunction(value) : [];
+  });
+
+  const control = useReactControl<E, T[]>(initialValue, validators);
 
   const push = useCallback(
     (item: T) => {
@@ -43,7 +48,7 @@ export function useReactList<E extends HTMLElement, T = any>(
 }
 
 export function useFormList<T = any>(
-  value?: T[],
+  value?: ValueOrFunction<T[]>,
   validators?: ValidatorFn<T[]>[]
 ): ReactHtmlList<T> {
   return useReactList<HTMLElement, T>(value, validators);
