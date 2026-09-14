@@ -214,7 +214,10 @@ describe('useFormArray with derived writes from child effects', () => {
       };
 
       renderTree(
-        createElement(OrderArrayHost, { groups: [createOrderGroup('')], result })
+        createElement(OrderArrayHost, {
+          groups: [createOrderGroup('')],
+          result
+        })
       );
 
       act(() => {
