@@ -57,7 +57,7 @@ useReactControl<E extends HTMLElement, T>(
 ): ReactFormControl<E, T>;
 ```
 
-The options object is `{ value, validators?, touched? }` — `touched` lets a control start as already interacted with, so `wrong` can show an error before the user touches the field.
+The options object is `{ value, validators?, touched?, formatter?, formatOn? }` — `touched` lets a control start as already interacted with, so `wrong` can show an error before the user touches the field; `formatter` and `formatOn` are described below.
 
 ```tsx
 import { useAreaControl, useInputControl } from '@rolster/react-forms';
@@ -71,6 +71,29 @@ const alias = useInputControl<string>(); // ReactInputVoid<string>
 **State flags:** `valid` / `invalid`, `dirty` / `pristine`, `touched` / `untouched`, `focused` / `unfocused`, `disabled` / `enabled`, and `wrong` (`touched && invalid`, ideal for deciding when to show an error).
 
 **Key methods:** `setValue(value)` (also accepts an updater `(current) => next`, like `useState`), `setStartValue(value)` (updates the value without marking it dirty), `setDefaultValue(value)` (also replaces the value restored by `reset()`), `setValidators(validators)`, `reset()`, `disable()` / `enable()`, `focus()` / `blur()`, `touch()`, `hasError(id)`, `someErrors(ids)`.
+
+#### Formatter
+
+`formatter` is a pure `(value: T) => T` function that normalizes the value before it is stored, so validators and the rendered value always see the formatted result. `formatOn` decides when it runs: `'input'` (the default) applies it to the initial value and to every `setValue`, `setStartValue` and `setDefaultValue`, including the result of an updater; `'blur'` keeps the raw value while the user types and applies it when `blur()` is called. When the formatted value equals the current one the state does not change, so a rejected character does not re-render the component.
+
+```tsx
+import { useInputControl } from '@rolster/react-forms';
+
+const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+function PhoneField() {
+  const phone = useInputControl({ value: '', formatter: onlyDigits });
+  const name = useInputControl({
+    value: '',
+    formatter: (value: string) => value.trim(),
+    formatOn: 'blur'
+  });
+
+  // phone.setValue('30a1') stores '301'; name keeps ' Ana ' until name.blur()
+}
+```
+
+Declare the formatter outside the component or wrap it in `useCallback`: the hook keeps the latest function in a ref, so an inline arrow still works, but a stable identity avoids re-running that effect on every render. The function must be **idempotent**, because the field components of `@rolster/react-components` apply it before writing the DOM and the control applies it again. The control exposes `formatter` and `formatOn` so a custom component can do the same. The array factories (`inputArrayControl`, `formArrayControl`, …) accept the same two options.
 
 ### useFormGroup
 
@@ -311,19 +334,19 @@ amount.hasError('even'); // true
 
 ### Types
 
-| Type                      | Description                                                             |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `ReactFormControl<E, T>`  | Contract of a control: value, state flags, `setValue`, `elementRef`.    |
-| `ReactHtmlControl<T>`     | `ReactFormControl<HTMLElement, T>`.                                     |
-| `ReactInputControl<T>`    | `ReactFormControl<HTMLInputElement, T>`.                                |
-| `ReactAreaControl`        | `ReactFormControl<HTMLTextAreaElement, string>`.                        |
-| `ReactControls<T>`        | Record of controls: the shape accepted by `useFormGroup`.               |
-| `ReactGroup<C>`           | The group returned by `useFormGroup`.                                   |
-| `ReactFormArray<C, R, G>` | The array returned by `useFormArray`.                                   |
-| `ReactArrayGroup<C, R>`   | A group item of an array, with `uuid` and `resource`.                   |
-| `ReactArrayControls<T>`   | Record of `ReactArrayControl`s: the controls shape of an array group.   |
-| `ReactFormList<E, T>`     | The list control returned by `useReactList` / `useFormList`.            |
-| `ReactControl<E, T>`      | `ReactFormControl \| ReactArrayControl`: accepts both kinds of control. |
+| Type                      | Description                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------- |
+| `ReactFormControl<E, T>`  | Contract of a control: value, state flags, `setValue`, `elementRef`, `formatter`/`formatOn`. |
+| `ReactHtmlControl<T>`     | `ReactFormControl<HTMLElement, T>`.                                                          |
+| `ReactInputControl<T>`    | `ReactFormControl<HTMLInputElement, T>`.                                                     |
+| `ReactAreaControl`        | `ReactFormControl<HTMLTextAreaElement, string>`.                                             |
+| `ReactControls<T>`        | Record of controls: the shape accepted by `useFormGroup`.                                    |
+| `ReactGroup<C>`           | The group returned by `useFormGroup`.                                                        |
+| `ReactFormArray<C, R, G>` | The array returned by `useFormArray`.                                                        |
+| `ReactArrayGroup<C, R>`   | A group item of an array, with `uuid` and `resource`.                                        |
+| `ReactArrayControls<T>`   | Record of `ReactArrayControl`s: the controls shape of an array group.                        |
+| `ReactFormList<E, T>`     | The list control returned by `useReactList` / `useFormList`.                                 |
+| `ReactControl<E, T>`      | `ReactFormControl \| ReactArrayControl`: accepts both kinds of control.                      |
 
 Every control type has a `*Void` variant — `ReactFormVoid`, `ReactHtmlVoid`, `ReactInputVoid`, `ReactAreaVoid`, and the array `ReactArrayVoid`, `ReactHtmlArrayVoid`, `ReactInputArrayVoid`, `ReactAreaArrayVoid` — which is the same type with `T | undefined` as value. It is what the hooks and factories return when they are created without an initial value.
 

@@ -244,3 +244,75 @@ describe('areaArrayControl', () => {
     expect(control.valid).toBe(true);
   });
 });
+
+describe('formArrayControl formatter', () => {
+  const upperCase = (value: string) => value.toUpperCase();
+  const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+  it('should format the initial value and expose the formatter', () => {
+    const control = formArrayControl({ formatter: upperCase, value: 'abc' });
+
+    expect(control.value).toBe('ABC');
+    expect(control.formatter).toBe(upperCase);
+  });
+
+  it("should format on setValue and emit a 'value' action", () => {
+    const track = trackControl(
+      formArrayControl({ formatter: upperCase, value: '' })
+    );
+
+    track.current.setValue('abc');
+
+    expect(track.actions).toEqual(['value']);
+    expect(track.current.value).toBe('ABC');
+    expect(track.current.dirty).toBe(true);
+    expect(track.current.formatter).toBe(upperCase);
+  });
+
+  it('should not emit when the formatter rejects the input', () => {
+    const track = trackControl(
+      formArrayControl({ formatter: onlyDigits, value: '12' })
+    );
+
+    track.current.setValue('12a');
+
+    expect(track.actions).toEqual([]);
+    expect(track.current.value).toBe('12');
+  });
+
+  it("should format on blur with a 'value' action when formatOn is 'blur'", () => {
+    const track = trackControl(
+      formArrayControl({
+        formatOn: 'blur',
+        formatter: upperCase,
+        validators: [required],
+        value: ''
+      })
+    );
+
+    track.current.focus();
+    track.current.setValue('abc');
+
+    expect(track.current.value).toBe('abc');
+
+    track.current.blur();
+
+    expect(track.actions).toEqual(['focused', 'value', 'value']);
+    expect(track.current.value).toBe('ABC');
+    expect(track.current.touched).toBe(true);
+    expect(track.current.focused).toBe(false);
+    expect(track.current.valid).toBe(true);
+  });
+
+  it("should emit a 'focused' action on blur when the value does not change", () => {
+    const track = trackControl(
+      formArrayControl({ formatOn: 'blur', formatter: upperCase, value: 'ABC' })
+    );
+
+    track.current.focus();
+    track.current.blur();
+
+    expect(track.actions).toEqual(['focused', 'focused']);
+    expect(track.current.touched).toBe(true);
+  });
+});

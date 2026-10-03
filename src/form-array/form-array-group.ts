@@ -69,21 +69,14 @@ function refactorForControls<C extends ReactArrayControls = ReactArrayControls>(
       return refactorForValid(controls, group.validators);
 
     case 'reset':
-      return {
-        ...refactorForValid(controls, group.validators),
-        dirty: verifyAnyTrueInControls(controls, 'dirty'),
-        dirties: verifyAllTrueInControls(controls, 'dirty'),
-        touched: verifyAnyTrueInControls(controls, 'touched'),
-        toucheds: verifyAllTrueInControls(controls, 'touched'),
-        value: controlsToValue(controls)
-      };
-
     case 'list':
     case 'value':
       return {
         ...refactorForValid(controls, group.validators),
         dirty: verifyAnyTrueInControls(controls, 'dirty'),
         dirties: verifyAllTrueInControls(controls, 'dirty'),
+        touched: verifyAnyTrueInControls(controls, 'touched'),
+        toucheds: verifyAllTrueInControls(controls, 'touched'),
         value: controlsToValue(controls)
       };
 

@@ -1,6 +1,8 @@
-import { FormArrayControlOptions } from '@rolster/forms';
+import { FormArrayControlOptions, FormatOn, FormatterFn } from '@rolster/forms';
 import {
   createFormControlOptions,
+  formatBlurValue,
+  formatInputValue,
   formControlIsValid,
   hasError,
   someErrors
@@ -64,6 +66,10 @@ export class RolsterArrayControl<
 
   public readonly validators?: ValidatorFn<T>[];
 
+  public readonly formatter?: FormatterFn<T>;
+
+  public readonly formatOn?: FormatOn;
+
   public elementRef?: RefObject<E | null>;
 
   protected subscriber?: ReactArrayControlSubscriber<E, T>;
@@ -87,6 +93,8 @@ export class RolsterArrayControl<
     this.errors = options.errors;
     this.error = this.errors[0];
     this.validators = options.validators;
+    this.formatter = options.formatter;
+    this.formatOn = options.formatOn;
   }
 
   public focus(): void {
@@ -97,7 +105,18 @@ export class RolsterArrayControl<
 
   public blur(): void {
     if (this.focused) {
-      this.refresh('focused', { focused: false, touched: true });
+      const value = formatBlurValue(this.value, this);
+
+      if (value === this.value) {
+        this.refresh('focused', { focused: false, touched: true });
+      } else {
+        this.refresh('value', {
+          errors: this.errorsOf(value),
+          focused: false,
+          touched: true,
+          value
+        });
+      }
     }
   }
 
@@ -120,32 +139,37 @@ export class RolsterArrayControl<
   }
 
   public setDefaultValue(value: T): void {
-    if (value !== this.defaultValue) {
-      const errors = this.validators
-        ? formControlIsValid({ value, validators: this.validators })
-        : [];
+    const defaultValue = formatInputValue(value, this);
 
-      this.refresh('value', { errors, defaultValue: value, value });
+    if (defaultValue !== this.defaultValue) {
+      this.refresh('value', {
+        defaultValue,
+        errors: this.errorsOf(defaultValue),
+        value: defaultValue
+      });
     }
   }
 
   public setStartValue(value: T): void {
-    if (value !== this.value) {
-      const errors = this.validators
-        ? formControlIsValid({ value, validators: this.validators })
-        : [];
+    const startValue = formatInputValue(value, this);
 
-      this.refresh('value', { errors, value });
+    if (startValue !== this.value) {
+      this.refresh('value', {
+        errors: this.errorsOf(startValue),
+        value: startValue
+      });
     }
   }
 
   public setValue(value: T): void {
-    if (value !== this.value) {
-      const errors = this.validators
-        ? formControlIsValid({ value, validators: this.validators })
-        : [];
+    const newValue = formatInputValue(value, this);
 
-      this.refresh('value', { dirty: true, errors, value });
+    if (newValue !== this.value) {
+      this.refresh('value', {
+        dirty: true,
+        errors: this.errorsOf(newValue),
+        value: newValue
+      });
     }
   }
 
@@ -189,6 +213,12 @@ export class RolsterArrayControl<
     return errors.length === 0;
   }
 
+  protected errorsOf(value: T): ValidatorError<T>[] {
+    return this.validators
+      ? formControlIsValid({ value, validators: this.validators })
+      : [];
+  }
+
   protected builder(options: Options<T>): ReactArrayControl<E, T> {
     return new RolsterArrayControl({ ...this, ...options });
   }
@@ -226,10 +256,13 @@ function rolsterArrayControl<E extends HTMLElement = HTMLElement, T = any>(
     validators
   );
 
+  const value = formatInputValue(formControl.value, formControl);
+
   return new ReactRolsterArrayControl({
     ...formControl,
-    defaultValue: formControl.value,
-    uuid: uuid()
+    defaultValue: value,
+    uuid: uuid(),
+    value
   });
 }
 

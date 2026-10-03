@@ -349,6 +349,200 @@ describe('useFormControl', () => {
   });
 });
 
+const upperCase = (value: string) => value.toUpperCase();
+const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+describe('useFormControl formatter', () => {
+  describe("formatOn 'input' (default)", () => {
+    it('should expose the formatter options', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: 'abc' })
+      );
+
+      expect(result.current.formatter).toBe(upperCase);
+      expect(result.current.formatOn).toBeUndefined();
+    });
+
+    it('should format the initial value', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: 'abc' })
+      );
+
+      expect(result.current.value).toBe('ABC');
+    });
+
+    it('should format the value on setValue and mark the control as dirty', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: '' })
+      );
+
+      act(() => {
+        result.current.setValue('abc');
+      });
+
+      expect(result.current.value).toBe('ABC');
+      expect(result.current.dirty).toBe(true);
+    });
+
+    it('should format the value produced by an updater', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: 'a' })
+      );
+
+      act(() => {
+        result.current.setValue((current) => `${current}b`);
+      });
+
+      expect(result.current.value).toBe('AB');
+    });
+
+    it('should not change the state when the formatter rejects the input', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: onlyDigits, value: '12' })
+      );
+
+      const control = result.current;
+
+      act(() => {
+        result.current.setValue('12a');
+      });
+
+      expect(result.current).toBe(control);
+      expect(result.current.value).toBe('12');
+      expect(result.current.dirty).toBe(false);
+    });
+
+    it('should run validators against the formatted value', () => {
+      const { result } = renderHook(() =>
+        useFormControl({
+          formatter: onlyDigits,
+          validators: [required],
+          value: '1'
+        })
+      );
+
+      expect(result.current.valid).toBe(true);
+
+      act(() => {
+        result.current.setValue('abc');
+      });
+
+      expect(result.current.value).toBe('');
+      expect(result.current.valid).toBe(false);
+    });
+
+    it('should format setStartValue, setDefaultValue and reset', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: '' })
+      );
+
+      act(() => {
+        result.current.setStartValue('start');
+      });
+
+      expect(result.current.value).toBe('START');
+      expect(result.current.dirty).toBe(false);
+
+      act(() => {
+        result.current.setDefaultValue('default');
+      });
+
+      act(() => {
+        result.current.setValue('other');
+      });
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.value).toBe('DEFAULT');
+    });
+
+    it('should not format on blur', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatter: upperCase, value: 'ABC' })
+      );
+
+      const control = result.current;
+
+      act(() => {
+        result.current.blur();
+      });
+
+      expect(result.current.value).toBe('ABC');
+      expect(result.current.touched).toBe(true);
+      expect(result.current).not.toBe(control);
+    });
+  });
+
+  describe("formatOn 'blur'", () => {
+    it('should keep the raw value while typing and format on blur', () => {
+      const { result } = renderHook(() =>
+        useFormControl({
+          formatOn: 'blur',
+          formatter: upperCase,
+          validators: [required],
+          value: ''
+        })
+      );
+
+      act(() => {
+        result.current.setValue('abc');
+      });
+
+      expect(result.current.value).toBe('abc');
+
+      act(() => {
+        result.current.blur();
+      });
+
+      expect(result.current.value).toBe('ABC');
+      expect(result.current.touched).toBe(true);
+      expect(result.current.focused).toBe(false);
+      expect(result.current.valid).toBe(true);
+    });
+
+    it('should revalidate the formatted value on blur', () => {
+      const { result } = renderHook(() =>
+        useFormControl({
+          formatOn: 'blur',
+          formatter: onlyDigits,
+          validators: [required],
+          value: ''
+        })
+      );
+
+      act(() => {
+        result.current.setValue('abc');
+      });
+
+      expect(result.current.valid).toBe(true);
+
+      act(() => {
+        result.current.blur();
+      });
+
+      expect(result.current.value).toBe('');
+      expect(result.current.valid).toBe(false);
+      expect(result.current.wrong).toBe(true);
+    });
+
+    it('should not format the initial or start value', () => {
+      const { result } = renderHook(() =>
+        useFormControl({ formatOn: 'blur', formatter: upperCase, value: 'abc' })
+      );
+
+      expect(result.current.value).toBe('abc');
+
+      act(() => {
+        result.current.setStartValue('start');
+      });
+
+      expect(result.current.value).toBe('start');
+    });
+  });
+});
+
 describe('useReactControl', () => {
   it('should create a control with an element reference', () => {
     const { result } = renderHook(() =>

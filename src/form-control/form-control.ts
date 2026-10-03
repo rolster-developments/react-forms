@@ -1,11 +1,13 @@
-import { FormControlOptions } from '@rolster/forms';
+import { FormatterOptions, FormControlOptions } from '@rolster/forms';
 import {
   createFormControlOptions,
+  formatBlurValue,
+  formatInputValue,
   hasError,
   someErrors
 } from '@rolster/forms/helpers';
 import { ValidatorError, ValidatorFn } from '@rolster/validators';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { errorsInControl } from './form-control.helper';
 import {
   ReactAreaControl,
@@ -43,16 +45,32 @@ function useControl<E extends HTMLElement, T = any>(
     validators
   );
 
-  const defaultValue = useRef<T>(formControl.value);
+  const format = useRef<FormatterOptions<T>>({
+    formatOn: formControl.formatOn,
+    formatter: formControl.formatter
+  });
+
+  useEffect(() => {
+    format.current = {
+      formatOn: formControl.formatOn,
+      formatter: formControl.formatter
+    };
+  }, [formControl.formatOn, formControl.formatter]);
+
+  const defaultValue = useRef<T>(
+    formatInputValue(formControl.value, formControl)
+  );
 
   const [state, setState] = useState<ControlState<T>>(() => {
+    const value = defaultValue.current;
+
     return {
       dirty: false,
       disabled: false,
-      errors: errorsInControl(formControl.value, formControl.validators),
+      errors: errorsInControl(value, formControl.validators),
       focused: false,
       touched: !!formControl.touched,
-      value: formControl.value,
+      value,
       validators: formControl.validators
     };
   });
@@ -64,7 +82,21 @@ function useControl<E extends HTMLElement, T = any>(
   }, []);
 
   const blur = useCallback(() => {
-    setState((state) => ({ ...state, focused: false, touched: true }));
+    setState((state) => {
+      const value = formatBlurValue(state.value, format.current);
+
+      if (Object.is(value, state.value)) {
+        return { ...state, focused: false, touched: true };
+      }
+
+      return {
+        ...state,
+        errors: errorsInControl(value, state.validators),
+        focused: false,
+        touched: true,
+        value
+      };
+    });
   }, []);
 
   const disable = useCallback(() => {
@@ -80,26 +112,31 @@ function useControl<E extends HTMLElement, T = any>(
   }, []);
 
   const setDefaultValue = useCallback((value: T) => {
-    defaultValue.current = value;
+    const defaultFormatted = formatInputValue(value, format.current);
+
+    defaultValue.current = defaultFormatted;
 
     setState((state) => ({
       ...state,
-      errors: errorsInControl(value, state.validators),
-      value
+      errors: errorsInControl(defaultFormatted, state.validators),
+      value: defaultFormatted
     }));
   }, []);
 
   const setStartValue = useCallback((value: T) => {
+    const startValue = formatInputValue(value, format.current);
+
     setState((state) => ({
       ...state,
-      errors: errorsInControl(value, state.validators),
-      value
+      errors: errorsInControl(startValue, state.validators),
+      value: startValue
     }));
   }, []);
 
   const setValue = useCallback((value: T | ValueSetter<T>) => {
     setState((state) => {
-      const newValue = valueIsSetter(value) ? value(state.value) : value;
+      const currentValue = valueIsSetter(value) ? value(state.value) : value;
+      const newValue = formatInputValue(currentValue, format.current);
 
       if (Object.is(newValue, state.value)) {
         return state;
@@ -158,6 +195,8 @@ function useControl<E extends HTMLElement, T = any>(
       enabled: !state.disabled,
       error: state.errors[0],
       focus,
+      formatOn: format.current.formatOn,
+      formatter: format.current.formatter,
       hasError: formControlHasError,
       invalid: !valid,
       pristine: !state.dirty,
