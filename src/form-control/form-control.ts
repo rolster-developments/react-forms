@@ -232,13 +232,13 @@ export function useReactControl<E extends HTMLElement, T>(
   options: ReactControlOptions<T>
 ): ReactFormControl<E, T>;
 export function useReactControl<E extends HTMLElement, T>(
-  value: undefined,
-  validators?: ValidatorFn<T>[]
-): ReactFormControl<E, T | undefined>;
-export function useReactControl<E extends HTMLElement, T>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ReactFormControl<E, T>;
+export function useReactControl<E extends HTMLElement, T>(
+  value: Undefined<T>,
+  validators?: ValidatorFn<T>[]
+): ReactFormControl<E, T | undefined>;
 export function useReactControl<E extends HTMLElement, T>(
   options?: ReactControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
@@ -257,13 +257,13 @@ export function useFormControl<T>(
   options: ReactControlOptions<T>
 ): ReactHtmlControl<T>;
 export function useFormControl<T>(
-  value: undefined,
-  validators?: ValidatorFn<T>[]
-): ReactHtmlControl<T | undefined>;
-export function useFormControl<T>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ReactHtmlControl<T>;
+export function useFormControl<T>(
+  value: Undefined<T>,
+  validators?: ValidatorFn<T>[]
+): ReactHtmlControl<T | undefined>;
 export function useFormControl<T>(
   options?: ReactControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
@@ -282,13 +282,13 @@ export function useInputControl<T>(
   options: ReactControlOptions<T>
 ): ReactInputControl<T>;
 export function useInputControl<T>(
-  value: undefined,
-  validators?: ValidatorFn<T>[]
-): ReactInputControl<T | undefined>;
-export function useInputControl<T>(
   value: T,
   validators?: ValidatorFn<T>[]
 ): ReactInputControl<T>;
+export function useInputControl<T>(
+  value: Undefined<T>,
+  validators?: ValidatorFn<T>[]
+): ReactInputControl<T | undefined>;
 export function useInputControl<T>(
   options?: ReactControlOptions<T> | T,
   validators?: ValidatorFn<T>[]
@@ -304,13 +304,13 @@ export function useAreaControl(
   options: ReactControlOptions<string>
 ): ReactAreaControl;
 export function useAreaControl(
-  value: undefined,
-  validators?: ValidatorFn<string>[]
-): ReactAreaVoid;
-export function useAreaControl(
   value: string,
   validators?: ValidatorFn<string>[]
 ): ReactAreaControl;
+export function useAreaControl(
+  value: Undefined<string>,
+  validators?: ValidatorFn<string>[]
+): ReactAreaVoid;
 export function useAreaControl(
   options?: ReactControlOptions<string> | string,
   validators?: ValidatorFn<string>[]

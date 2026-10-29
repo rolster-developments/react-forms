@@ -63,7 +63,7 @@ export function useTextRefControl(
   options: TextRefOptions
 ): ReactInputControl<string>;
 export function useTextRefControl(
-  value: string,
+  value?: string,
   validators?: ValidatorFn<string>[]
 ): ReactInputControl<string>;
 export function useTextRefControl(
@@ -86,7 +86,7 @@ export function useNumberRefControl(
   options: NumberRefOptions
 ): ReactInputControl<number>;
 export function useNumberRefControl(
-  value: number,
+  value?: number,
   validators?: ValidatorFn<number>[]
 ): ReactInputControl<number>;
 export function useNumberRefControl(

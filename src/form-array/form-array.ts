@@ -111,13 +111,13 @@ export function useFormArray<
   C extends ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
->(options: FormArrayOptions<C, R, G>): ReactFormArray<C, R, G>;
+>(options?: FormArrayOptions<C, R, G>): ReactFormArray<C, R, G>;
 export function useFormArray<
   C extends ReactArrayControls,
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 >(
-  groups: ReactArrayGroup<C, R>[],
+  groups?: ReactArrayGroup<C, R>[],
   validators?: ValidatorArrayFn<C, R>[]
 ): ReactFormArray<C, R, G>;
 export function useFormArray<
@@ -125,7 +125,7 @@ export function useFormArray<
   R = any,
   G extends ReactArrayGroup<C, R> = ReactArrayGroup<C, R>
 >(
-  groups: () => ReactArrayGroup<C, R>[],
+  groups?: () => ReactArrayGroup<C, R>[],
   validators?: ValidatorArrayFn<C, R>[]
 ): ReactFormArray<C, R, G>;
 export function useFormArray<
