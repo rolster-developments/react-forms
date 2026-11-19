@@ -5,6 +5,7 @@ export default rolster({
   requiredEsm: true,
   entryFiles: ['index'],
   packages: [
+    '@rolster/commons',
     '@rolster/forms',
     '@rolster/forms/arguments',
     '@rolster/forms/helpers',
